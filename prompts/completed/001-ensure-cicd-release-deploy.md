@@ -11,7 +11,7 @@ Project details:
 - Tech stack: Astro v5.16.6 with React integration
 - Build command: `npm run build`
 - Output directory: `./dist`
-- Current working directory: `/Users/alexanderfedin/Projects/hapyy/hupyy-cpp-to-c/website`
+- Current working directory: `~/Projects/hapyy/hupyy-cpp-to-c/website`
 
 Examine existing workflow configuration:
 @.github/workflows/deploy.yml
