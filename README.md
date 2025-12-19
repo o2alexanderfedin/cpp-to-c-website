@@ -2,6 +2,8 @@
 
 This is the documentation and demonstration website for the C++ to C Transpiler, built with Astro and deployed on Vercel.
 
+**Note**: This repository is a git submodule of the main [cpp-to-c-transpiler](https://github.com/o2alexanderfedin/cpp-to-c-transpiler) repository.
+
 ## Technology Stack
 
 - **Framework**: Astro 4.x with React integration
@@ -133,17 +135,42 @@ Or check the console logs on page load:
   - Performance optimization
   - SEO and accessibility
 
-## Monorepo Structure
+## Repository Structure
 
-This website is part of the main `hupyy-cpp-to-c` monorepo:
+This website repository is included as a git submodule in the main transpiler project:
 
 ```
-hupyy-cpp-to-c/
-├── src/              # Transpiler C++ source
-├── include/          # Transpiler headers
-├── tests/            # Transpiler tests
-├── docs/             # Markdown documentation
-└── website/          # THIS DIRECTORY - Astro website
+cpp-to-c-transpiler/         # Main transpiler repository
+├── src/                     # Transpiler C++ source
+├── include/                 # Transpiler headers
+├── tests/                   # Transpiler tests
+├── docs/                    # Markdown documentation
+└── website/                 # Git submodule → cpp-to-c-website (THIS REPO)
+```
+
+### Working with the Submodule
+
+When working on the website:
+
+```bash
+# Clone the main repository with submodules
+git clone --recursive https://github.com/o2alexanderfedin/cpp-to-c-transpiler.git
+
+# Or initialize submodules after cloning
+git submodule update --init --recursive
+
+# Make changes in the website directory
+cd website
+git checkout -b feature/my-changes
+# ... make changes ...
+git commit -am "feat: add new feature"
+git push origin feature/my-changes
+
+# Update main repository to reference new commit
+cd ..
+git add website
+git commit -m "chore: update website submodule"
+git push
 ```
 
 ## Scripts
