@@ -8,19 +8,23 @@ const { title, description = 'C++ to C Transpiler - Convert modern C++ code to p
 const base = import.meta.env.BASE_URL;
 const currentPath = Astro.url.pathname;
 
+// Normalize paths for comparison (remove trailing slashes)
+const normalizePath = (path: string) => path.replace(/\/$/, '') || '/';
+const normalizedCurrent = normalizePath(currentPath);
+
 // Define all tabs
 const tabs = [
-  { href: `${base}/`, label: 'Home' },
-  { href: `${base}/about`, label: 'About' },
-  { href: `${base}/features`, label: 'Features' },
-  { href: `${base}/architecture`, label: 'Architecture' },
-  { href: `${base}/getting-started`, label: 'Get Started' },
-  { href: `${base}/playground`, label: 'Playground' },
-  { href: `${base}/docs`, label: 'Docs' },
-  { href: `${base}/examples`, label: 'Examples' },
-  { href: `${base}/benchmarks`, label: 'Benchmarks' },
-  { href: `${base}/metrics`, label: 'Metrics' },
-  { href: `${base}/faq`, label: 'FAQ' },
+  { href: `${base}/`, label: 'Home', path: normalizePath(base) },
+  { href: `${base}/about`, label: 'About', path: normalizePath(`${base}/about`) },
+  { href: `${base}/features`, label: 'Features', path: normalizePath(`${base}/features`) },
+  { href: `${base}/architecture`, label: 'Architecture', path: normalizePath(`${base}/architecture`) },
+  { href: `${base}/getting-started`, label: 'Get Started', path: normalizePath(`${base}/getting-started`) },
+  { href: `${base}/playground`, label: 'Playground', path: normalizePath(`${base}/playground`) },
+  { href: `${base}/docs`, label: 'Docs', path: normalizePath(`${base}/docs`) },
+  { href: `${base}/examples`, label: 'Examples', path: normalizePath(`${base}/examples`) },
+  { href: `${base}/benchmarks`, label: 'Benchmarks', path: normalizePath(`${base}/benchmarks`) },
+  { href: `${base}/metrics`, label: 'Metrics', path: normalizePath(`${base}/metrics`) },
+  { href: `${base}/faq`, label: 'FAQ', path: normalizePath(`${base}/faq`) },
 ];
 ---
 
@@ -127,8 +131,7 @@ const tabs = [
         <a href={`${base}/`} class="tab-brand">C++ to C Transpiler</a>
         <nav class="tab-nav">
           {tabs.map((tab) => {
-            const isActive = currentPath === tab.href ||
-                           (tab.href !== `${base}/` && currentPath.startsWith(tab.href));
+            const isActive = normalizedCurrent === tab.path;
             return (
               <a
                 href={tab.href}
