@@ -6,6 +6,22 @@ interface Props {
 
 const { title, description = 'C++ to C Transpiler - Convert modern C++ code to portable C' } = Astro.props;
 const base = import.meta.env.BASE_URL;
+const currentPath = Astro.url.pathname;
+
+// Define all tabs
+const tabs = [
+  { href: `${base}/`, label: 'Home' },
+  { href: `${base}/about`, label: 'About' },
+  { href: `${base}/features`, label: 'Features' },
+  { href: `${base}/architecture`, label: 'Architecture' },
+  { href: `${base}/getting-started`, label: 'Get Started' },
+  { href: `${base}/playground`, label: 'Playground' },
+  { href: `${base}/docs`, label: 'Docs' },
+  { href: `${base}/examples`, label: 'Examples' },
+  { href: `${base}/benchmarks`, label: 'Benchmarks' },
+  { href: `${base}/metrics`, label: 'Metrics' },
+  { href: `${base}/faq`, label: 'FAQ' },
+];
 ---
 
 <!DOCTYPE html>
@@ -44,26 +60,86 @@ const base = import.meta.env.BASE_URL;
         margin: 0 auto;
         padding: 0 1rem;
       }
+
+      /* Tab Navigation Styles */
+      .tab-header {
+        background: #2a2a2a;
+        border-bottom: 2px solid #444;
+      }
+
+      .tab-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+      }
+
+      .tab-brand {
+        color: white;
+        font-size: 1.3rem;
+        font-weight: bold;
+        padding: 0.75rem 1rem;
+        display: inline-block;
+      }
+
+      .tab-nav {
+        display: flex;
+        gap: 0.25rem;
+        flex-wrap: wrap;
+        margin-top: 0.5rem;
+      }
+
+      .tab {
+        padding: 0.5rem 1rem;
+        background: #1a1a1a;
+        color: #bbb;
+        border: 1px solid #444;
+        border-bottom: none;
+        border-radius: 6px 6px 0 0;
+        text-decoration: none;
+        transition: all 0.2s;
+        position: relative;
+      }
+
+      .tab:hover {
+        background: #252525;
+        color: white;
+        text-decoration: none;
+      }
+
+      .tab.active {
+        background: white;
+        color: #333;
+        border-color: #444;
+        border-bottom: 2px solid white;
+        margin-bottom: -2px;
+        font-weight: 500;
+      }
+
+      .tab.active:hover {
+        background: white;
+        color: #333;
+      }
     </style>
   </head>
   <body>
-    <header style="background: #1a1a1a; color: white; padding: 1rem 0;">
-      <nav class="container" style="display: flex; justify-content: space-between; align-items: center;">
-        <a href={`${base}/`} style="color: white; font-size: 1.5rem; font-weight: bold;">C++ to C Transpiler</a>
-        <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
-          <a href={`${base}/`} style="color: white;">Home</a>
-          <a href={`${base}/about`} style="color: white;">About</a>
-          <a href={`${base}/features`} style="color: white;">Features</a>
-          <a href={`${base}/architecture`} style="color: white;">Architecture</a>
-          <a href={`${base}/getting-started`} style="color: white;">Get Started</a>
-          <a href={`${base}/playground`} style="color: white;">Playground</a>
-          <a href={`${base}/docs`} style="color: white;">Docs</a>
-          <a href={`${base}/examples`} style="color: white;">Examples</a>
-          <a href={`${base}/benchmarks`} style="color: white;">Benchmarks</a>
-          <a href={`${base}/metrics`} style="color: white;">Metrics</a>
-          <a href={`${base}/faq`} style="color: white;">FAQ</a>
-        </div>
-      </nav>
+    <header class="tab-header">
+      <div class="tab-container">
+        <a href={`${base}/`} class="tab-brand">C++ to C Transpiler</a>
+        <nav class="tab-nav">
+          {tabs.map((tab) => {
+            const isActive = currentPath === tab.href ||
+                           (tab.href !== `${base}/` && currentPath.startsWith(tab.href));
+            return (
+              <a
+                href={tab.href}
+                class={`tab ${isActive ? 'active' : ''}`}
+              >
+                {tab.label}
+              </a>
+            );
+          })}
+        </nav>
+      </div>
     </header>
 
     <main>
@@ -89,44 +165,6 @@ const base = import.meta.env.BASE_URL;
           console.log('✓ Cross-origin isolation enabled - WebAssembly ready!');
         }
       }
-
-      // Tab navigation with Ctrl+Tab and Ctrl+Shift+Tab
-      document.addEventListener('keydown', (e) => {
-        // Check for Ctrl+Tab or Ctrl+Shift+Tab
-        if (e.ctrlKey && e.key === 'Tab') {
-          e.preventDefault();
-
-          // Get all navigation links (skip the logo/brand link)
-          const navLinks = Array.from(document.querySelectorAll('header nav a')).slice(1);
-
-          if (navLinks.length === 0) return;
-
-          // Find current page index by matching href
-          const currentPath = window.location.pathname;
-          let currentIndex = navLinks.findIndex((link: any) => {
-            const linkPath = new URL(link.href).pathname;
-            return linkPath === currentPath;
-          });
-
-          // If not found, default to first tab
-          if (currentIndex === -1) currentIndex = 0;
-
-          // Calculate next index
-          let nextIndex;
-          if (e.shiftKey) {
-            // Ctrl+Shift+Tab - go backward
-            nextIndex = currentIndex - 1;
-            if (nextIndex < 0) nextIndex = navLinks.length - 1;
-          } else {
-            // Ctrl+Tab - go forward
-            nextIndex = currentIndex + 1;
-            if (nextIndex >= navLinks.length) nextIndex = 0;
-          }
-
-          // Navigate to next tab
-          (navLinks[nextIndex] as HTMLAnchorElement).click();
-        }
-      });
     </script>
   </body>
 </html>
