@@ -135,13 +135,33 @@ const timeSavedPercent = ((timeSavedHours / estimatedHours) * 100).toFixed(1);
           </thead>
           <tbody>
             <tr style="border-bottom: 1px solid #f0f0f0;">
-              <td style="padding: 1rem;">Lines of Code / Hour</td>
+              <td style="padding: 1rem;">Source Code LOC / Hour</td>
               <td style="padding: 1rem; text-align: right;">10</td>
+              <td style="padding: 1rem; text-align: right; font-weight: bold; color: #28a745;">
+                {actualData.productivity_metrics.actual_source_loc_per_hour.toFixed(1)}
+              </td>
+              <td style="padding: 1rem; text-align: right; font-weight: bold;">
+                {(actualData.productivity_metrics.actual_source_loc_per_hour / 10).toFixed(1)}x
+              </td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f0f0f0;">
+              <td style="padding: 1rem;">Test Code LOC / Hour</td>
+              <td style="padding: 1rem; text-align: right;">50</td>
+              <td style="padding: 1rem; text-align: right; font-weight: bold; color: #28a745;">
+                {actualData.productivity_metrics.actual_test_loc_per_hour.toFixed(1)}
+              </td>
+              <td style="padding: 1rem; text-align: right; font-weight: bold;">
+                {(actualData.productivity_metrics.actual_test_loc_per_hour / 50).toFixed(1)}x
+              </td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f0f0f0;">
+              <td style="padding: 1rem;">Total LOC / Hour</td>
+              <td style="padding: 1rem; text-align: right;">30</td>
               <td style="padding: 1rem; text-align: right; font-weight: bold; color: #28a745;">
                 {actualData.productivity_metrics.actual_loc_per_hour.toFixed(1)}
               </td>
               <td style="padding: 1rem; text-align: right; font-weight: bold;">
-                {(actualData.productivity_metrics.actual_loc_per_hour / 10).toFixed(1)}x
+                {(actualData.productivity_metrics.actual_loc_per_hour / 30).toFixed(1)}x
               </td>
             </tr>
             <tr style="border-bottom: 1px solid #f0f0f0;">

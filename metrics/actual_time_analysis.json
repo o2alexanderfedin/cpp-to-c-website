@@ -188,11 +188,13 @@
     }
   ],
   "productivity_metrics": {
-    "actual_loc_per_hour": 5013.07,
+    "actual_loc_per_hour": 1299.73,
     "actual_commits_per_hour": 4.19,
     "actual_files_per_hour": 0,
     "actual_tests_per_hour": 0,
-    "actual_docs_pages_per_hour": 0
+    "actual_docs_pages_per_hour": 8.41,
+    "actual_source_loc_per_hour": 161.74,
+    "actual_test_loc_per_hour": 978.94
   },
   "comparison_with_estimates": {
     "estimated_total_hours": 1840,
