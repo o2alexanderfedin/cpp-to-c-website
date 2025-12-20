@@ -94,8 +94,9 @@ const tabs = [
         margin: 0 auto;
         padding: 0 1.5rem;
         display: flex;
-        align-items: flex-end;
+        align-items: flex-start;
         gap: 1rem;
+        flex-wrap: wrap;
       }
 
       .tab-brand {
@@ -112,23 +113,8 @@ const tabs = [
         gap: 0.25rem;
         align-items: flex-end;
         flex: 1;
-        overflow-x: auto;
-        flex-wrap: nowrap;
-        scrollbar-width: thin;
-        scrollbar-color: #444 transparent;
-      }
-
-      .tab-nav::-webkit-scrollbar {
-        height: 4px;
-      }
-
-      .tab-nav::-webkit-scrollbar-track {
-        background: transparent;
-      }
-
-      .tab-nav::-webkit-scrollbar-thumb {
-        background: #444;
-        border-radius: 2px;
+        flex-wrap: wrap;
+        min-width: 0;
       }
 
       .tab {
@@ -142,7 +128,6 @@ const tabs = [
         transition: all 0.2s;
         position: relative;
         white-space: nowrap;
-        flex-shrink: 0;
       }
 
       .tab:hover {
