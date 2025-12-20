@@ -89,6 +89,44 @@ const base = import.meta.env.BASE_URL;
           console.log('✓ Cross-origin isolation enabled - WebAssembly ready!');
         }
       }
+
+      // Tab navigation with Ctrl+Tab and Ctrl+Shift+Tab
+      document.addEventListener('keydown', (e) => {
+        // Check for Ctrl+Tab or Ctrl+Shift+Tab
+        if (e.ctrlKey && e.key === 'Tab') {
+          e.preventDefault();
+
+          // Get all navigation links (skip the logo/brand link)
+          const navLinks = Array.from(document.querySelectorAll('header nav a')).slice(1);
+
+          if (navLinks.length === 0) return;
+
+          // Find current page index by matching href
+          const currentPath = window.location.pathname;
+          let currentIndex = navLinks.findIndex((link: any) => {
+            const linkPath = new URL(link.href).pathname;
+            return linkPath === currentPath;
+          });
+
+          // If not found, default to first tab
+          if (currentIndex === -1) currentIndex = 0;
+
+          // Calculate next index
+          let nextIndex;
+          if (e.shiftKey) {
+            // Ctrl+Shift+Tab - go backward
+            nextIndex = currentIndex - 1;
+            if (nextIndex < 0) nextIndex = navLinks.length - 1;
+          } else {
+            // Ctrl+Tab - go forward
+            nextIndex = currentIndex + 1;
+            if (nextIndex >= navLinks.length) nextIndex = 0;
+          }
+
+          // Navigate to next tab
+          (navLinks[nextIndex] as HTMLAnchorElement).click();
+        }
+      });
     </script>
   </body>
 </html>
