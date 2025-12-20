@@ -182,6 +182,222 @@ const tabs = [
         outline: 2px solid #0066cc;
         outline-offset: 2px;
       }
+
+      /* Screen reader only content */
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+      }
+
+      /* Mobile Menu Button */
+      .mobile-menu-button {
+        display: none; /* Hidden by default (desktop) */
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        padding: 0.625rem;
+        min-width: 44px;
+        min-height: 44px;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .mobile-menu-button:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .mobile-menu-button:focus {
+        outline: 2px solid #0066cc;
+        outline-offset: 2px;
+      }
+
+      .mobile-menu-button:focus:not(:focus-visible) {
+        outline: none;
+      }
+
+      .mobile-menu-button:focus-visible {
+        outline: 2px solid #0066cc;
+        outline-offset: 2px;
+      }
+
+      /* Mobile Navigation Drawer */
+      .mobile-nav-drawer {
+        position: fixed;
+        top: 0;
+        left: -280px; /* Hidden off-screen */
+        width: 280px;
+        height: 100vh;
+        background: #2a2a2a;
+        z-index: 1000;
+        transition: left 0.25s ease-out;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .mobile-nav-drawer.open {
+        left: 0;
+      }
+
+      /* Mobile Navigation Header */
+      .mobile-nav-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #444;
+        background: #1a1a1a;
+      }
+
+      .mobile-nav-title {
+        color: white;
+        font-weight: bold;
+        font-size: 1.1rem;
+      }
+
+      .mobile-nav-close {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        padding: 0.5rem;
+        min-width: 44px;
+        min-height: 44px;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .mobile-nav-close:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .mobile-nav-close:focus {
+        outline: 2px solid #0066cc;
+        outline-offset: 2px;
+      }
+
+      .mobile-nav-close:focus:not(:focus-visible) {
+        outline: none;
+      }
+
+      .mobile-nav-close:focus-visible {
+        outline: 2px solid #0066cc;
+        outline-offset: 2px;
+      }
+
+      /* Mobile Navigation Content */
+      .mobile-nav-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem 0;
+      }
+
+      .mobile-nav-item {
+        display: block;
+        padding: 0.875rem 1.5rem;
+        color: #bbb;
+        text-decoration: none;
+        transition: background-color 0.2s, color 0.2s;
+        border-left: 3px solid transparent;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+      }
+
+      .mobile-nav-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: white;
+        text-decoration: none;
+      }
+
+      .mobile-nav-item.active {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-left-color: #0066cc;
+        font-weight: 500;
+      }
+
+      .mobile-nav-item:focus {
+        outline: 2px solid #0066cc;
+        outline-offset: -2px;
+      }
+
+      .mobile-nav-item:focus:not(:focus-visible) {
+        outline: none;
+      }
+
+      .mobile-nav-item:focus-visible {
+        outline: 2px solid #0066cc;
+        outline-offset: -2px;
+      }
+
+      /* Mobile Navigation Overlay */
+      .mobile-nav-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease-out;
+      }
+
+      .mobile-nav-overlay.visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      /* Prevent body scroll when menu is open */
+      body.menu-open {
+        overflow: hidden;
+      }
+
+      /* Responsive behavior */
+      @media (max-width: 768px) {
+        /* Show hamburger button on mobile */
+        .mobile-menu-button {
+          display: flex;
+        }
+
+        /* Hide desktop navigation on mobile */
+        .tab-nav-desktop {
+          display: none !important;
+        }
+
+        /* Adjust tab container for mobile */
+        .tab-container {
+          justify-content: space-between;
+        }
+
+        .tab-brand {
+          margin-right: auto;
+        }
+      }
+
+      @media (min-width: 769px) {
+        /* Hide mobile elements on desktop */
+        .mobile-menu-button,
+        .mobile-nav-drawer,
+        .mobile-nav-overlay {
+          display: none !important;
+        }
+      }
     </style>
   </head>
   <body>
@@ -189,7 +405,25 @@ const tabs = [
     <header class="tab-header">
       <div class="tab-container">
         <a href={`${base}/`} class="tab-brand">C++ to C Transpiler</a>
-        <nav class="tab-nav">
+
+        <!-- Hamburger menu button (mobile only) -->
+        <button
+          class="mobile-menu-button"
+          aria-label="Open navigation menu"
+          aria-expanded="false"
+          aria-controls="mobile-nav-drawer"
+          type="button"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+          <span class="sr-only">Menu</span>
+        </button>
+
+        <!-- Desktop navigation (hidden on mobile) -->
+        <nav class="tab-nav tab-nav-desktop">
           {tabs.map((tab) => {
             const isActive = normalizedCurrent === tab.path;
             return (
@@ -205,6 +439,36 @@ const tabs = [
         </nav>
       </div>
     </header>
+
+    <!-- Mobile navigation drawer -->
+    <div id="mobile-nav-drawer" class="mobile-nav-drawer" aria-hidden="true">
+      <div class="mobile-nav-header">
+        <span class="mobile-nav-title">Navigation</span>
+        <button class="mobile-nav-close" aria-label="Close navigation menu" type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <nav class="mobile-nav-content" role="navigation" aria-label="Main navigation">
+        {tabs.map((tab) => {
+          const isActive = normalizedCurrent === tab.path;
+          return (
+            <a
+              href={tab.href}
+              class={`mobile-nav-item ${isActive ? 'active' : ''}`}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              {tab.label}
+            </a>
+          );
+        })}
+      </nav>
+    </div>
+
+    <!-- Overlay backdrop -->
+    <div class="mobile-nav-overlay" aria-hidden="true"></div>
 
     <main id="main-content">
       <slot />
@@ -229,6 +493,151 @@ const tabs = [
           console.log('✓ Cross-origin isolation enabled - WebAssembly ready!');
         }
       }
+    </script>
+
+    <script>
+      // Mobile navigation menu functionality
+      (() => {
+        const menuButton = document.querySelector('.mobile-menu-button') as HTMLButtonElement | null;
+        const drawer = document.querySelector('.mobile-nav-drawer') as HTMLElement | null;
+        const closeButton = document.querySelector('.mobile-nav-close') as HTMLButtonElement | null;
+        const overlay = document.querySelector('.mobile-nav-overlay') as HTMLElement | null;
+        const navLinks = document.querySelectorAll('.mobile-nav-item');
+
+        if (!menuButton || !drawer || !closeButton || !overlay) {
+          return; // Mobile menu elements not found (likely on desktop)
+        }
+
+        let lastFocusedElement: HTMLElement | null = null;
+
+        // Focus trap elements (first and last focusable elements in drawer)
+        const getFocusableElements = (): HTMLElement[] => {
+          const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+          return Array.from(drawer.querySelectorAll(focusableSelectors)) as HTMLElement[];
+        };
+
+        // Open menu
+        const openMenu = (): void => {
+          // Store currently focused element
+          lastFocusedElement = document.activeElement as HTMLElement;
+
+          // Update ARIA states
+          menuButton.setAttribute('aria-expanded', 'true');
+          drawer.setAttribute('aria-hidden', 'false');
+          overlay.setAttribute('aria-hidden', 'false');
+
+          // Add classes
+          drawer.classList.add('open');
+          overlay.classList.add('visible');
+          document.body.classList.add('menu-open');
+
+          // Focus first link in drawer
+          const focusableElements = getFocusableElements();
+          if (focusableElements.length > 0) {
+            // Focus first navigation link (skip close button)
+            const firstNavLink = drawer.querySelector('.mobile-nav-item') as HTMLElement;
+            if (firstNavLink) {
+              firstNavLink.focus();
+            } else {
+              focusableElements[0].focus();
+            }
+          }
+        };
+
+        // Close menu
+        const closeMenu = (): void => {
+          // Update ARIA states
+          menuButton.setAttribute('aria-expanded', 'false');
+          drawer.setAttribute('aria-hidden', 'true');
+          overlay.setAttribute('aria-hidden', 'true');
+
+          // Remove classes
+          drawer.classList.remove('open');
+          overlay.classList.remove('visible');
+          document.body.classList.remove('menu-open');
+
+          // Restore focus to button that opened menu
+          if (lastFocusedElement) {
+            lastFocusedElement.focus();
+          } else {
+            menuButton.focus();
+          }
+        };
+
+        // Toggle menu
+        const toggleMenu = (): void => {
+          const isOpen = drawer.classList.contains('open');
+          if (isOpen) {
+            closeMenu();
+          } else {
+            openMenu();
+          }
+        };
+
+        // Focus trap (Tab cycles within drawer)
+        const handleFocusTrap = (e: KeyboardEvent): void => {
+          if (!drawer.classList.contains('open')) {
+            return;
+          }
+
+          const focusableElements = getFocusableElements();
+          if (focusableElements.length === 0) {
+            return;
+          }
+
+          const firstElement = focusableElements[0];
+          const lastElement = focusableElements[focusableElements.length - 1];
+
+          if (e.key === 'Tab') {
+            if (e.shiftKey) {
+              // Shift + Tab: going backwards
+              if (document.activeElement === firstElement) {
+                e.preventDefault();
+                lastElement.focus();
+              }
+            } else {
+              // Tab: going forwards
+              if (document.activeElement === lastElement) {
+                e.preventDefault();
+                firstElement.focus();
+              }
+            }
+          }
+        };
+
+        // Event listeners
+        menuButton.addEventListener('click', toggleMenu);
+        closeButton.addEventListener('click', closeMenu);
+        overlay.addEventListener('click', closeMenu);
+
+        // Close menu when clicking a navigation link
+        navLinks.forEach((link) => {
+          link.addEventListener('click', () => {
+            closeMenu();
+          });
+        });
+
+        // Keyboard support
+        document.addEventListener('keydown', (e: KeyboardEvent) => {
+          if (drawer.classList.contains('open')) {
+            if (e.key === 'Escape') {
+              closeMenu();
+            }
+            handleFocusTrap(e);
+          }
+        });
+
+        // Close menu on viewport resize (prevents issues when switching orientations)
+        let resizeTimer: number;
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeTimer);
+          resizeTimer = window.setTimeout(() => {
+            if (drawer.classList.contains('open') && window.innerWidth > 768) {
+              closeMenu();
+            }
+          }, 250);
+        });
+      })();
     </script>
   </body>
 </html>
