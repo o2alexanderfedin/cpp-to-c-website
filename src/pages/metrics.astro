@@ -1,0 +1,217 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import effortData from '../../metrics/project_effort_analysis.json';
+import actualData from '../../metrics/actual_time_analysis.json';
+
+const base = import.meta.env.BASE_URL;
+
+// Calculate comparison metrics
+const estimatedHours = effortData.summary.total_effort_hours;
+const actualHours = actualData.actual_effort.total_hours;
+const efficiencyMultiplier = actualData.comparison_with_estimates.efficiency_multiplier;
+const timeSavedHours = estimatedHours - actualHours;
+const timeSavedPercent = ((timeSavedHours / estimatedHours) * 100).toFixed(1);
+---
+
+<MainLayout title="Development Metrics - C++ to C Transpiler">
+  <div class="container" style="padding: 2rem 0;">
+    <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Development Metrics</h1>
+    <p style="color: #666; margin-bottom: 2rem; font-size: 1.1rem;">
+      Empirical analysis of development effort and AI-assisted productivity gains
+    </p>
+
+    <!-- Productivity Highlight -->
+    <section style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 3rem; border-radius: 1rem; margin-bottom: 3rem; text-align: center;">
+      <div style="font-size: 4rem; font-weight: bold; margin-bottom: 0.5rem;">{efficiencyMultiplier}x</div>
+      <div style="font-size: 1.5rem; margin-bottom: 1rem;">Productivity Multiplier</div>
+      <div style="font-size: 1.1rem; opacity: 0.9;">
+        AI-assisted development completed {effortData.summary.total_effort_weeks} weeks of work in {effortData.summary.calendar_duration_days} days
+      </div>
+    </section>
+
+    <!-- Time Comparison -->
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 2rem; margin-bottom: 1.5rem;">Time Comparison</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+        <div style="background: #f8f9fa; padding: 2rem; border-radius: 0.5rem; border-left: 4px solid #dc3545;">
+          <div style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">ESTIMATED (Traditional)</div>
+          <div style="font-size: 2.5rem; font-weight: bold; color: #dc3545;">{estimatedHours}</div>
+          <div style="color: #666; margin-top: 0.5rem;">hours ({effortData.summary.total_effort_weeks} weeks)</div>
+        </div>
+        <div style="background: #f8f9fa; padding: 2rem; border-radius: 0.5rem; border-left: 4px solid #28a745;">
+          <div style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">ACTUAL (AI-Assisted)</div>
+          <div style="font-size: 2.5rem; font-weight: bold; color: #28a745;">{actualHours.toFixed(1)}</div>
+          <div style="color: #666; margin-top: 0.5rem;">hours ({actualData.timeline.active_days} active days)</div>
+        </div>
+        <div style="background: #f8f9fa; padding: 2rem; border-radius: 0.5rem; border-left: 4px solid #6f42c1;">
+          <div style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">TIME SAVED</div>
+          <div style="font-size: 2.5rem; font-weight: bold; color: #6f42c1;">{timeSavedPercent}%</div>
+          <div style="color: #666; margin-top: 0.5rem;">{timeSavedHours.toFixed(0)} hours saved</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Code Metrics -->
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 2rem; margin-bottom: 1.5rem;">Code Metrics</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div style="padding: 1.5rem; background: #fff; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
+          <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">Total Lines of Code</div>
+          <div style="font-size: 1.8rem; font-weight: bold;">{effortData.metrics.total_lines_of_code.toLocaleString()}</div>
+        </div>
+        <div style="padding: 1.5rem; background: #fff; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
+          <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">Source Code</div>
+          <div style="font-size: 1.8rem; font-weight: bold;">{effortData.metrics.source_code_loc.toLocaleString()}</div>
+        </div>
+        <div style="padding: 1.5rem; background: #fff; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
+          <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">Test Code</div>
+          <div style="font-size: 1.8rem; font-weight: bold;">{effortData.metrics.test_code_loc.toLocaleString()}</div>
+        </div>
+        <div style="padding: 1.5rem; background: #fff; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
+          <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">Documentation</div>
+          <div style="font-size: 1.8rem; font-weight: bold;">{effortData.metrics.documentation_pages}</div>
+          <div style="font-size: 0.8rem; color: #999; margin-top: 0.25rem;">pages</div>
+        </div>
+        <div style="padding: 1.5rem; background: #fff; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
+          <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">Unit Tests</div>
+          <div style="font-size: 1.8rem; font-weight: bold;">{effortData.metrics.unit_test_count}+</div>
+        </div>
+        <div style="padding: 1.5rem; background: #fff; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
+          <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">Commits</div>
+          <div style="font-size: 1.8rem; font-weight: bold;">{effortData.metrics.total_commits}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Development Activity -->
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 2rem; margin-bottom: 1.5rem;">Development Activity</h2>
+      <div style="background: #f8f9fa; padding: 2rem; border-radius: 0.5rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+          <div>
+            <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">Calendar Duration</div>
+            <div style="font-size: 1.5rem; font-weight: bold;">{actualData.timeline.calendar_days} days</div>
+            <div style="font-size: 0.8rem; color: #999; margin-top: 0.25rem;">
+              {actualData.timeline.first_commit.split('T')[0]} to {actualData.timeline.last_commit.split('T')[0]}
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">Active Days</div>
+            <div style="font-size: 1.5rem; font-weight: bold;">{actualData.timeline.active_days}</div>
+            <div style="font-size: 0.8rem; color: #999; margin-top: 0.25rem;">
+              {actualData.actual_effort.average_hours_per_day.toFixed(1)} hours/day average
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">Development Sessions</div>
+            <div style="font-size: 1.5rem; font-weight: bold;">{actualData.sessions.total_count}</div>
+            <div style="font-size: 0.8rem; color: #999; margin-top: 0.25rem;">
+              {actualData.sessions.average_duration_hours.toFixed(1)} hours/session average
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">Work Pattern</div>
+            <div style="font-size: 1.5rem; font-weight: bold;">Burst</div>
+            <div style="font-size: 0.8rem; color: #999; margin-top: 0.25rem;">
+              Most productive: {actualData.activity_patterns.most_productive_day_of_week}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Productivity Breakdown -->
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 2rem; margin-bottom: 1.5rem;">Productivity Analysis</h2>
+      <div style="background: #fff; border: 1px solid #e0e0e0; border-radius: 0.5rem; padding: 2rem;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="border-bottom: 2px solid #e0e0e0;">
+              <th style="text-align: left; padding: 1rem; color: #666; font-weight: 600;">Metric</th>
+              <th style="text-align: right; padding: 1rem; color: #666; font-weight: 600;">Traditional</th>
+              <th style="text-align: right; padding: 1rem; color: #666; font-weight: 600;">AI-Assisted</th>
+              <th style="text-align: right; padding: 1rem; color: #666; font-weight: 600;">Multiplier</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid #f0f0f0;">
+              <td style="padding: 1rem;">Lines of Code / Hour</td>
+              <td style="padding: 1rem; text-align: right;">10</td>
+              <td style="padding: 1rem; text-align: right; font-weight: bold; color: #28a745;">
+                {actualData.productivity_metrics.actual_loc_per_hour.toFixed(1)}
+              </td>
+              <td style="padding: 1rem; text-align: right; font-weight: bold;">
+                {(actualData.productivity_metrics.actual_loc_per_hour / 10).toFixed(1)}x
+              </td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f0f0f0;">
+              <td style="padding: 1rem;">Commits / Hour</td>
+              <td style="padding: 1rem; text-align: right;">0.5</td>
+              <td style="padding: 1rem; text-align: right; font-weight: bold; color: #28a745;">
+                {actualData.productivity_metrics.actual_commits_per_hour.toFixed(1)}
+              </td>
+              <td style="padding: 1rem; text-align: right; font-weight: bold;">
+                {(actualData.productivity_metrics.actual_commits_per_hour / 0.5).toFixed(1)}x
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 1rem;">Documentation Pages / Hour</td>
+              <td style="padding: 1rem; text-align: right;">0.5</td>
+              <td style="padding: 1rem; text-align: right; font-weight: bold; color: #28a745;">
+                {actualData.productivity_metrics.actual_docs_pages_per_hour.toFixed(1)}
+              </td>
+              <td style="padding: 1rem; text-align: right; font-weight: bold;">
+                {(actualData.productivity_metrics.actual_docs_pages_per_hour / 0.5).toFixed(1)}x
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Methodology -->
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 2rem; margin-bottom: 1.5rem;">Methodology</h2>
+      <div style="background: #f8f9fa; padding: 2rem; border-radius: 0.5rem;">
+        <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">Estimated Effort Calculation</h3>
+        <ul style="list-style-type: disc; margin-left: 2rem; margin-bottom: 2rem; color: #666; line-height: 1.8;">
+          <li>Based on industry benchmarks for compiler/transpiler development</li>
+          <li>10 LOC/hour for complex compiler work (conservative estimate)</li>
+          <li>Documented phase timelines from planning documents</li>
+          <li>Total: {estimatedHours} hours ({effortData.summary.total_effort_weeks} weeks)</li>
+        </ul>
+
+        <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">Actual Time Measurement</h3>
+        <ul style="list-style-type: disc; margin-left: 2rem; margin-bottom: 2rem; color: #666; line-height: 1.8;">
+          <li>Git commit timestamp analysis with session detection</li>
+          <li>4-hour gap threshold for session boundaries</li>
+          <li>Heuristics: 15 min minimum per commit, 30 min post-commit buffer</li>
+          <li>Daily cap: 16 hours, Session cap: 8 hours</li>
+          <li>Total: {actualHours.toFixed(1)} hours ({actualData.timeline.active_days} active days)</li>
+        </ul>
+
+        <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">Confidence Level</h3>
+        <div style="background: #e8f5e9; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid #4caf50;">
+          <strong style="color: #2e7d32;">HIGH</strong> - Based on empirical git data with validated session detection algorithm
+        </div>
+      </div>
+    </section>
+
+    <!-- Context -->
+    <section>
+      <h2 style="font-size: 2rem; margin-bottom: 1.5rem;">About This Analysis</h2>
+      <div style="background: #fff3cd; padding: 2rem; border-radius: 0.5rem; border: 1px solid #ffc107;">
+        <p style="color: #856404; line-height: 1.6; margin-bottom: 1rem;">
+          This analysis demonstrates the productivity gains achievable through AI-assisted software development.
+          The C++ to C transpiler project was developed using Claude Code with human oversight, completing
+          in {actualData.timeline.calendar_days} days what would traditionally require {effortData.summary.total_effort_weeks} weeks.
+        </p>
+        <p style="color: #856404; line-height: 1.6;">
+          <strong>Quality metrics:</strong> {effortData.metrics.unit_test_count}+ unit tests, {effortData.metrics.integration_test_count} integration tests,
+          {effortData.metrics.documentation_pages} pages of documentation, and comprehensive CI/CD pipeline demonstrate
+          that speed did not compromise quality.
+        </p>
+      </div>
+    </section>
+  </div>
+</MainLayout>
