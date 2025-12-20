@@ -95,24 +95,40 @@ const tabs = [
         padding: 0 1.5rem;
         display: flex;
         align-items: flex-end;
-        justify-content: space-between;
         gap: 1rem;
-        flex-wrap: wrap;
       }
 
       .tab-brand {
         color: white;
         font-size: 1.3rem;
         font-weight: bold;
-        padding: 0.75rem 1rem;
+        padding: 0.75rem 0;
         flex-shrink: 0;
+        margin-right: 1rem;
       }
 
       .tab-nav {
         display: flex;
         gap: 0.25rem;
-        flex-wrap: wrap;
         align-items: flex-end;
+        flex: 1;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        scrollbar-width: thin;
+        scrollbar-color: #444 transparent;
+      }
+
+      .tab-nav::-webkit-scrollbar {
+        height: 4px;
+      }
+
+      .tab-nav::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .tab-nav::-webkit-scrollbar-thumb {
+        background: #444;
+        border-radius: 2px;
       }
 
       .tab {
@@ -125,6 +141,8 @@ const tabs = [
         text-decoration: none;
         transition: all 0.2s;
         position: relative;
+        white-space: nowrap;
+        flex-shrink: 0;
       }
 
       .tab:hover {
