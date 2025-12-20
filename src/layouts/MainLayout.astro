@@ -118,7 +118,8 @@ const tabs = [
       }
 
       .tab {
-        padding: 0.5rem 1rem;
+        padding: 0.625rem 1rem;
+        min-height: 44px;
         background: #1a1a1a;
         color: #bbb;
         border: 1px solid #444;
@@ -149,9 +150,42 @@ const tabs = [
         background: white;
         color: #333;
       }
+
+      /* Skip Navigation Link */
+      .skip-link {
+        position: absolute;
+        top: -40px;
+        left: 0;
+        background: #0066cc;
+        color: white;
+        padding: 8px 16px;
+        text-decoration: none;
+        z-index: 100;
+        transition: top 0.2s ease;
+      }
+
+      .skip-link:focus {
+        top: 0;
+      }
+
+      /* Focus Indicators for Keyboard Navigation */
+      .tab:focus {
+        outline: 2px solid #0066cc;
+        outline-offset: 2px;
+      }
+
+      .tab:focus:not(:focus-visible) {
+        outline: none;
+      }
+
+      .tab:focus-visible {
+        outline: 2px solid #0066cc;
+        outline-offset: 2px;
+      }
     </style>
   </head>
   <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <header class="tab-header">
       <div class="tab-container">
         <a href={`${base}/`} class="tab-brand">C++ to C Transpiler</a>
@@ -162,6 +196,7 @@ const tabs = [
               <a
                 href={tab.href}
                 class={`tab ${isActive ? 'active' : ''}`}
+                aria-current={isActive ? 'page' : undefined}
               >
                 {tab.label}
               </a>
@@ -171,7 +206,7 @@ const tabs = [
       </div>
     </header>
 
-    <main>
+    <main id="main-content">
       <slot />
     </main>
 
