@@ -1,0 +1,296 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+const base = import.meta.env.BASE_URL;
+---
+
+<MainLayout title="Features - C++ to C Transpiler">
+  <div class="container" style="padding: 2rem 0;">
+    <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Supported Features</h1>
+    <p style="color: #666; margin-bottom: 2rem; font-size: 1.1rem;">
+      Comprehensive support for modern C++ features through proven transpilation patterns
+    </p>
+
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 2rem; margin-bottom: 1rem;">Core Features</h2>
+      <div style="display: grid; gap: 2rem;">
+
+        <!-- Classes and Inheritance -->
+        <div style="padding: 2rem; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
+          <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #0066cc;">Classes & Inheritance</h3>
+          <p style="color: #666; margin-bottom: 1rem; line-height: 1.6;">
+            Full support for single, multiple, and virtual inheritance patterns
+          </p>
+          <div style="background: #f9f9f9; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #333;">How It Works</h4>
+            <p style="color: #666; font-size: 0.95rem; line-height: 1.6;">
+              C++ classes are transpiled to C structs with explicit member layouts. Virtual functions use vtables
+              (virtual function tables) stored as function pointer arrays. Multiple inheritance uses base class
+              sub-objects with offset calculations, while virtual inheritance employs VTT (Virtual Table Tables)
+              for efficient base class access.
+            </p>
+          </div>
+          <div style="background: #e8f5e9; padding: 1rem; border-radius: 0.5rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #2e7d32;">Use Case</h4>
+            <p style="color: #2e7d32; font-size: 0.95rem; line-height: 1.6;">
+              Convert object-oriented C++ designs to portable C for embedded systems or safety-critical
+              applications requiring formal verification
+            </p>
+          </div>
+        </div>
+
+        <!-- Templates -->
+        <div style="padding: 2rem; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
+          <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #0066cc;">Templates</h3>
+          <p style="color: #666; margin-bottom: 1rem; line-height: 1.6;">
+            Full monomorphization through self-bootstrapping architecture
+          </p>
+          <div style="background: #f9f9f9; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #333;">How It Works</h4>
+            <p style="color: #666; font-size: 0.95rem; line-height: 1.6;">
+              The transpiler accesses fully-instantiated template specializations from Clang's AST. Each
+              template instantiation (e.g., <code>vector&lt;int&gt;</code>, <code>vector&lt;double&gt;</code>)
+              becomes a separate C struct and function set. This is true monomorphization - each instantiation
+              produces specialized C code, not generic code with type erasure.
+            </p>
+          </div>
+          <div style="background: #e8f5e9; padding: 1rem; border-radius: 0.5rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #2e7d32;">Use Case</h4>
+            <p style="color: #2e7d32; font-size: 0.95rem; line-height: 1.6;">
+              Use C++ template libraries (including STL) in your source code while generating portable C
+              for platforms without template support
+            </p>
+          </div>
+        </div>
+
+        <!-- STL Containers -->
+        <div style="padding: 2rem; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
+          <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #0066cc;">STL Containers</h3>
+          <p style="color: #666; margin-bottom: 1rem; line-height: 1.6;">
+            Automatic conversion of STL containers through self-bootstrapping
+          </p>
+          <div style="background: #f9f9f9; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #333;">How It Works</h4>
+            <p style="color: #666; font-size: 0.95rem; line-height: 1.6;">
+              No manual STL reimplementation needed. The transpiler processes STL containers (<code>vector</code>,
+              <code>map</code>, <code>set</code>, etc.) the same way it processes user code. When you use
+              <code>std::vector&lt;int&gt;</code>, Clang provides the fully-instantiated implementation in the
+              AST, which the transpiler converts to equivalent C structures and functions.
+            </p>
+          </div>
+          <div style="background: #e8f5e9; padding: 1rem; border-radius: 0.5rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #2e7d32;">Use Case</h4>
+            <p style="color: #2e7d32; font-size: 0.95rem; line-height: 1.6;">
+              Leverage the full power of STL in development while targeting C-only platforms or
+              formal verification tools
+            </p>
+          </div>
+        </div>
+
+        <!-- RAII -->
+        <div style="padding: 2rem; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
+          <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #0066cc;">RAII (Resource Acquisition Is Initialization)</h3>
+          <p style="color: #666; margin-bottom: 1rem; line-height: 1.6;">
+            Automatic resource management through destructor injection
+          </p>
+          <div style="background: #f9f9f9; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #333;">How It Works</h4>
+            <p style="color: #666; font-size: 0.95rem; line-height: 1.6;">
+              CFG (Control Flow Graph) analysis identifies all exit points from scopes (return statements,
+              exceptions, breaks, continues). Destructors are automatically injected at these points to ensure
+              proper cleanup. Combined with exception handling, this provides the same resource safety
+              guarantees as C++.
+            </p>
+          </div>
+          <div style="background: #e8f5e9; padding: 1rem; border-radius: 0.5rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #2e7d32;">Use Case</h4>
+            <p style="color: #2e7d32; font-size: 0.95rem; line-height: 1.6;">
+              Maintain C++ safety guarantees for file handles, locks, and memory while generating
+              verifiable C code
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 2rem; margin-bottom: 1rem;">Advanced Features</h2>
+      <div style="display: grid; gap: 2rem;">
+
+        <!-- Exceptions -->
+        <div style="padding: 2rem; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
+          <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #0066cc;">Exception Handling</h3>
+          <p style="color: #666; margin-bottom: 1rem; line-height: 1.6;">
+            PNaCl SJLJ pattern - the solution that Cfront didn't have
+          </p>
+          <div style="background: #f9f9f9; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #333;">How It Works</h4>
+            <p style="color: #666; font-size: 0.95rem; line-height: 1.6;">
+              Uses setjmp/longjmp with action tables for stack unwinding. Each try block creates one exception
+              frame (not per scope). Action tables describe destructor sequences, enabling proper cleanup during
+              unwinding. Thread-safe via <code>_Thread_local</code> storage. This pattern is proven by Comeau C++
+              (1990s), PNaCl (2013), and Emscripten (present).
+            </p>
+          </div>
+          <div style="background: #e8f5e9; padding: 1rem; border-radius: 0.5rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #2e7d32;">Use Case</h4>
+            <p style="color: #2e7d32; font-size: 0.95rem; line-height: 1.6;">
+              Convert exception-based error handling to portable C while maintaining proper resource cleanup
+              and type-safe catch handling
+            </p>
+          </div>
+        </div>
+
+        <!-- RTTI -->
+        <div style="padding: 2rem; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
+          <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #0066cc;">RTTI (Runtime Type Information)</h3>
+          <p style="color: #666; margin-bottom: 1rem; line-height: 1.6;">
+            Support for typeid, dynamic_cast, and type_info using Itanium ABI patterns
+          </p>
+          <div style="background: #f9f9f9; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #333;">How It Works</h4>
+            <p style="color: #666; font-size: 0.95rem; line-height: 1.6;">
+              Follows Itanium C++ ABI specification (used by GCC, Clang). Type information structures
+              (<code>__class_type_info</code>, <code>__si_class_type_info</code>, <code>__vmi_class_type_info</code>)
+              are generated for polymorphic classes. The <code>__dynamic_cast</code> algorithm performs
+              runtime type checking and pointer adjustment for safe downcasting and crosscasting.
+            </p>
+          </div>
+          <div style="background: #e8f5e9; padding: 1rem; border-radius: 0.5rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #2e7d32;">Use Case</h4>
+            <p style="color: #2e7d32; font-size: 0.95rem; line-height: 1.6;">
+              Enable type-safe polymorphic programming in C-generated code with runtime type checking
+              and dynamic casting
+            </p>
+          </div>
+        </div>
+
+        <!-- Lambdas -->
+        <div style="padding: 2rem; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
+          <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #0066cc;">Lambdas & Closures</h3>
+          <p style="color: #666; margin-bottom: 1rem; line-height: 1.6;">
+            Functional programming with captured variables
+          </p>
+          <div style="background: #f9f9f9; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #333;">How It Works</h4>
+            <p style="color: #666; font-size: 0.95rem; line-height: 1.6;">
+              C++ lambdas are transpiled to C structs containing captured variables plus a function pointer
+              for the lambda body. Value captures become struct members, reference captures become pointers.
+              The closure struct is passed as context to the generated function. Generic lambdas with
+              <code>auto</code> parameters are monomorphized for each call site.
+            </p>
+          </div>
+          <div style="background: #e8f5e9; padding: 1rem; border-radius: 0.5rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #2e7d32;">Use Case</h4>
+            <p style="color: #2e7d32; font-size: 0.95rem; line-height: 1.6;">
+              Use modern functional programming patterns (callbacks, algorithms) while targeting
+              C-based platforms
+            </p>
+          </div>
+        </div>
+
+        <!-- C++20 Coroutines -->
+        <div style="padding: 2rem; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
+          <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #0066cc;">C++20 Coroutines</h3>
+          <p style="color: #666; margin-bottom: 1rem; line-height: 1.6;">
+            Modern async/await patterns through state machine transformation
+          </p>
+          <div style="background: #f9f9f9; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #333;">How It Works</h4>
+            <p style="color: #666; font-size: 0.95rem; line-height: 1.6;">
+              Coroutines are transformed into state machines using Duff's device pattern. All coroutine state
+              (parameters, local variables, promise) is stored in a heap-allocated frame structure. Suspend
+              points become switch-case labels, allowing resumption from the exact suspension point. Based on
+              LLVM's CoroSplit pass and proven protothreads patterns.
+            </p>
+          </div>
+          <div style="background: #e8f5e9; padding: 1rem; border-radius: 0.5rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #2e7d32;">Use Case</h4>
+            <p style="color: #2e7d32; font-size: 0.95rem; line-height: 1.6;">
+              Implement asynchronous I/O, generators, and cooperative multitasking in embedded systems
+              using modern C++20 syntax
+            </p>
+          </div>
+        </div>
+
+        <!-- Smart Pointers -->
+        <div style="padding: 2rem; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
+          <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #0066cc;">Smart Pointers</h3>
+          <p style="color: #666; margin-bottom: 1rem; line-height: 1.6;">
+            Automatic memory management with unique_ptr and shared_ptr
+          </p>
+          <div style="background: #f9f9f9; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #333;">How It Works</h4>
+            <p style="color: #666; font-size: 0.95rem; line-height: 1.6;">
+              Smart pointers are transpiled to C structs with explicit ownership semantics. <code>unique_ptr</code>
+              becomes a struct with a single pointer and destructor that calls <code>delete</code>.
+              <code>shared_ptr</code> includes a reference count and control block for shared ownership.
+              Move semantics are implemented through explicit transfer of ownership.
+            </p>
+          </div>
+          <div style="background: #e8f5e9; padding: 1rem; border-radius: 0.5rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #2e7d32;">Use Case</h4>
+            <p style="color: #2e7d32; font-size: 0.95rem; line-height: 1.6;">
+              Prevent memory leaks and use-after-free errors in generated C code through C++ smart
+              pointer patterns
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 2rem; margin-bottom: 1rem;">Why These Features Matter</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+
+        <div style="padding: 1.5rem; background: #f0f7ff; border-radius: 0.5rem; border-left: 4px solid #0066cc;">
+          <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem; color: #0066cc;">Formal Verification</h3>
+          <p style="color: #555; font-size: 0.95rem; line-height: 1.6;">
+            All features transpile to clean, verifiable C suitable for tools like Frama-C, enabling
+            mathematical proofs of correctness
+          </p>
+        </div>
+
+        <div style="padding: 1.5rem; background: #f0f7ff; border-radius: 0.5rem; border-left: 4px solid #0066cc;">
+          <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem; color: #0066cc;">No Runtime Overhead</h3>
+          <p style="color: #555; font-size: 0.95rem; line-height: 1.6;">
+            Generated C code has minimal runtime library (1.7-2.8 KB), with most features producing
+            inline code with zero overhead
+          </p>
+        </div>
+
+        <div style="padding: 1.5rem; background: #f0f7ff; border-radius: 0.5rem; border-left: 4px solid #0066cc;">
+          <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem; color: #0066cc;">Battle-Tested Patterns</h3>
+          <p style="color: #555; font-size: 0.95rem; line-height: 1.6;">
+            Every feature uses proven patterns from production compilers (GCC, Clang, Comeau C++,
+            PNaCl, Emscripten)
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <section style="background: #f9f9f9; padding: 2rem; border-radius: 0.5rem; text-align: center;">
+      <h2 style="font-size: 2rem; margin-bottom: 1rem;">Ready to Explore?</h2>
+      <p style="color: #666; margin-bottom: 2rem; font-size: 1.1rem;">
+        Try these features in our interactive playground or read the detailed implementation guides
+      </p>
+      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <a
+          href={`${base}/playground`}
+          style="background: #0066cc; color: white; padding: 1rem 2rem; border-radius: 0.5rem; font-size: 1.1rem; text-decoration: none;"
+        >
+          Try Playground
+        </a>
+        <a
+          href={`${base}/docs`}
+          style="background: white; color: #0066cc; border: 2px solid #0066cc; padding: 1rem 2rem; border-radius: 0.5rem; font-size: 1.1rem; text-decoration: none;"
+        >
+          Read Documentation
+        </a>
+      </div>
+    </section>
+
+  </div>
+</MainLayout>
