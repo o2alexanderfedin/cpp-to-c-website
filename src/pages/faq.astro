@@ -1,0 +1,315 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+const base = import.meta.env.BASE_URL;
+---
+
+<MainLayout title="FAQ - C++ to C Transpiler">
+  <div class="container" style="padding: 2rem 0;">
+    <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Frequently Asked Questions</h1>
+    <p style="color: #666; margin-bottom: 3rem; font-size: 1.1rem;">
+      Common questions and answers about the C++ to C Transpiler.
+    </p>
+
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 2rem; margin-bottom: 1.5rem; color: #1a1a1a;">General Questions</h2>
+
+      <div style="margin-bottom: 2rem;">
+        <details style="background: #f9f9f9; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e0e0e0; margin-bottom: 1rem;">
+          <summary style="font-size: 1.2rem; font-weight: 600; cursor: pointer; color: #0066cc;">
+            What is the C++ to C Transpiler?
+          </summary>
+          <div style="margin-top: 1rem; color: #333; line-height: 1.6;">
+            <p style="margin-bottom: 1rem;">
+              The C++ to C Transpiler (cpptoc) is a source-to-source compiler that converts modern C++ code into clean, readable C code. It handles classes, templates, STL, exceptions, RTTI, coroutines, and virtual inheritance.
+            </p>
+            <p style="margin-bottom: 0.5rem; font-weight: 600;">Key Features:</p>
+            <ul style="margin-left: 1.5rem; margin-bottom: 0;">
+              <li>Clean, human-readable C output</li>
+              <li>Compatible with Frama-C formal verification</li>
+              <li>Suitable for safety-critical systems (DO-178C, ISO 26262)</li>
+              <li>Handles modern C++ including C++20 coroutines</li>
+              <li>Self-bootstrapping for STL conversion</li>
+            </ul>
+          </div>
+        </details>
+
+        <details style="background: #f9f9f9; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e0e0e0; margin-bottom: 1rem;">
+          <summary style="font-size: 1.2rem; font-weight: 600; cursor: pointer; color: #0066cc;">
+            Why would I want to transpile C++ to C?
+          </summary>
+          <div style="margin-top: 1rem; color: #333; line-height: 1.6;">
+            <p style="margin-bottom: 1rem;">There are several compelling use cases:</p>
+
+            <p style="font-weight: 600; margin-bottom: 0.5rem;">Safety-Critical Systems:</p>
+            <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+              <li>C is required for DO-178C (aviation), ISO 26262 (automotive), IEC 61508 (industrial) certification</li>
+              <li>Formal verification with Frama-C is easier with C</li>
+              <li>Deterministic behavior and predictable memory usage</li>
+            </ul>
+
+            <p style="font-weight: 600; margin-bottom: 0.5rem;">Embedded Systems:</p>
+            <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+              <li>Some platforms lack C++ compiler support</li>
+              <li>Smaller runtime footprint (1.7-2.8 KB vs. full C++ runtime)</li>
+              <li>No dependency on C++ standard library</li>
+            </ul>
+
+            <p style="font-weight: 600; margin-bottom: 0.5rem;">Legacy Integration:</p>
+            <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+              <li>Interface modern C++ with legacy C codebases</li>
+              <li>Migrate incrementally from C to C++ or vice versa</li>
+              <li>Understand low-level implementation of C++ features</li>
+            </ul>
+          </div>
+        </details>
+
+        <details style="background: #f9f9f9; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e0e0e0; margin-bottom: 1rem;">
+          <summary style="font-size: 1.2rem; font-weight: 600; cursor: pointer; color: #0066cc;">
+            What C++ features are supported?
+          </summary>
+          <div style="margin-top: 1rem; color: #333; line-height: 1.6;">
+            <p style="margin-bottom: 1rem;">Full C++20 support is planned across multiple phases:</p>
+
+            <p style="font-weight: 600; margin-bottom: 0.5rem;">Currently Implemented:</p>
+            <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+              <li>AST parsing and infrastructure (Phase 1 complete)</li>
+            </ul>
+
+            <p style="font-weight: 600; margin-bottom: 0.5rem;">Planned (Phases 2-5):</p>
+            <ul style="margin-left: 1.5rem; margin-bottom: 0;">
+              <li>Classes (single/multiple/virtual inheritance)</li>
+              <li>Templates (full monomorphization)</li>
+              <li>STL containers (vector, map, set, etc.)</li>
+              <li>RAII and destructors</li>
+              <li>Exceptions (PNaCl SJLJ pattern)</li>
+              <li>RTTI (type_info, dynamic_cast, typeid)</li>
+              <li>Lambdas and closures</li>
+              <li>C++20 coroutines</li>
+              <li>Smart pointers</li>
+              <li>Virtual functions and polymorphism</li>
+            </ul>
+          </div>
+        </details>
+
+        <details style="background: #f9f9f9; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e0e0e0; margin-bottom: 1rem;">
+          <summary style="font-size: 1.2rem; font-weight: 600; cursor: pointer; color: #0066cc;">
+            How does this compare to other transpilers like Cfront?
+          </summary>
+          <div style="margin-top: 1rem; color: #333; line-height: 1.6;">
+            <p style="margin-bottom: 1rem;">Modern approach with several advantages:</p>
+
+            <p style="font-weight: 600; margin-bottom: 0.5rem;">Cfront (historical, 1980s-1990s):</p>
+            <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+              <li>Generated unreadable C code</li>
+              <li>No formal verification support</li>
+              <li>Limited C++ feature support</li>
+              <li>No longer maintained</li>
+            </ul>
+
+            <p style="font-weight: 600; margin-bottom: 0.5rem;">cpptoc (modern, 2025):</p>
+            <ul style="margin-left: 1.5rem; margin-bottom: 0;">
+              <li>Clean, human-readable C output (Clang's battle-tested printers)</li>
+              <li>Frama-C compatible with ACSL annotations</li>
+              <li>Full C++20 support (including coroutines)</li>
+              <li>Active development</li>
+              <li>Intermediate C AST for optimal code quality (3-5x cleaner than direct translation)</li>
+              <li>Self-bootstrapping for STL (no manual reimplementation)</li>
+            </ul>
+          </div>
+        </details>
+
+        <details style="background: #f9f9f9; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e0e0e0; margin-bottom: 1rem;">
+          <summary style="font-size: 1.2rem; font-weight: 600; cursor: pointer; color: #0066cc;">
+            Is the generated C code human-readable?
+          </summary>
+          <div style="margin-top: 1rem; color: #333; line-height: 1.6;">
+            <p style="margin-bottom: 1rem;">Yes! That's a core design goal.</p>
+
+            <p style="margin-bottom: 0.5rem; font-weight: 600;">Why it's readable:</p>
+            <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+              <li>Uses Clang's DeclPrinter/StmtPrinter (15+ years production use)</li>
+              <li>Intermediate C AST ensures clean output</li>
+              <li>Standard C naming conventions</li>
+              <li>Minimal runtime library (not inline spaghetti)</li>
+              <li>Comments and #line directives preserved</li>
+            </ul>
+
+            <p style="margin-bottom: 0.5rem;">The generated code is 3-5x cleaner than direct translation approaches.</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 2rem; margin-bottom: 1.5rem; color: #1a1a1a;">Usage & Production</h2>
+
+      <div style="margin-bottom: 2rem;">
+        <details style="background: #f9f9f9; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e0e0e0; margin-bottom: 1rem;">
+          <summary style="font-size: 1.2rem; font-weight: 600; cursor: pointer; color: #0066cc;">
+            Can I use this for production?
+          </summary>
+          <div style="margin-top: 1rem; color: #333; line-height: 1.6;">
+            <p style="margin-bottom: 1rem;">
+              The project is currently in Phase 1 (Infrastructure Complete) with full code generation planned for the coming months. Phase 1 includes AST parsing and structure reporting.
+            </p>
+            <p style="margin-bottom: 1rem; font-weight: 600;">Estimated timeline for production-ready:</p>
+            <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+              <li>Phase 2 (CNodeBuilder): ~3-4 weeks</li>
+              <li>Phase 3 (Core Features): ~4-8 weeks</li>
+              <li>Phase 4 (Advanced Features): ~8-12 weeks</li>
+            </ul>
+            <p>
+              Total to production-ready: approximately 6 months. However, the architecture is designed for safety-critical systems with formal verification support.
+            </p>
+          </div>
+        </details>
+
+        <details style="background: #f9f9f9; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e0e0e0; margin-bottom: 1rem;">
+          <summary style="font-size: 1.2rem; font-weight: 600; cursor: pointer; color: #0066cc;">
+            What's the performance overhead?
+          </summary>
+          <div style="margin-top: 1rem; color: #333; line-height: 1.6;">
+            <p style="margin-bottom: 1rem;">Minimal overhead, often identical to C++ compiled code:</p>
+
+            <p style="font-weight: 600; margin-bottom: 0.5rem;">Runtime Performance:</p>
+            <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+              <li>Virtual function calls: 0% overhead (same as C++ vtables)</li>
+              <li>Exception handling: 0% overhead when not throwing</li>
+              <li>RTTI dynamic_cast: 0% overhead (same algorithm as libcxxabi)</li>
+              <li>Memory layout: Identical to C++ ABI</li>
+            </ul>
+
+            <p style="font-weight: 600; margin-bottom: 0.5rem;">Size Overhead (with Library Mode):</p>
+            <ul style="margin-left: 1.5rem; margin-bottom: 0;">
+              <li>Runtime library: 1.7-2.8 KB total</li>
+              <li>Per-file overhead: ~0 bytes (library mode)</li>
+              <li>With optimization (-Os -flto): 35-45% reduction vs. baseline</li>
+            </ul>
+          </div>
+        </details>
+
+        <details style="background: #f9f9f9; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e0e0e0; margin-bottom: 1rem;">
+          <summary style="font-size: 1.2rem; font-weight: 600; cursor: pointer; color: #0066cc;">
+            How does formal verification work?
+          </summary>
+          <div style="margin-top: 1rem; color: #333; line-height: 1.6;">
+            <p style="margin-bottom: 1rem;">Full Frama-C integration for formal verification:</p>
+
+            <p style="font-weight: 600; margin-bottom: 0.5rem;">Features:</p>
+            <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+              <li>ACSL annotations in generated code</li>
+              <li>Runtime library verified with Frama-C WP</li>
+              <li>Weakest precondition analysis</li>
+              <li>Tractable verification (verify library once, not every function)</li>
+            </ul>
+
+            <p style="margin-bottom: 0.5rem;">The generated C code is designed to be 5-10x easier to verify than C++ code, making it ideal for safety-critical applications requiring mathematical proofs of correctness.</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 2rem; margin-bottom: 1.5rem; color: #1a1a1a;">License & Contributing</h2>
+
+      <div style="margin-bottom: 2rem;">
+        <details style="background: #f9f9f9; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e0e0e0; margin-bottom: 1rem;">
+          <summary style="font-size: 1.2rem; font-weight: 600; cursor: pointer; color: #0066cc;">
+            What license is it under?
+          </summary>
+          <div style="margin-top: 1rem; color: #333; line-height: 1.6;">
+            <p style="margin-bottom: 1rem; font-weight: 600;">Open Source License:</p>
+            <p style="margin-bottom: 1rem;">
+              This project is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+              You are free to use, share, and reference the work for non-commercial purposes with proper attribution.
+            </p>
+
+            <p style="margin-bottom: 1rem; font-weight: 600;">Commercial License:</p>
+            <p style="margin-bottom: 0.5rem;">
+              Commercial licensing is available for businesses and organizations with benefits including:
+            </p>
+            <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+              <li>Commercial use rights</li>
+              <li>Modification and derivative works</li>
+              <li>Distribution and sublicensing</li>
+              <li>Priority technical support</li>
+              <li>Custom development options</li>
+            </ul>
+            <p>
+              Contact <a href="mailto:alexander.fedin@hapyy.com" style="color: #0066cc;">alexander.fedin@hapyy.com</a> for commercial licensing inquiries.
+            </p>
+          </div>
+        </details>
+
+        <details style="background: #f9f9f9; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e0e0e0; margin-bottom: 1rem;">
+          <summary style="font-size: 1.2rem; font-weight: 600; cursor: pointer; color: #0066cc;">
+            How can I contribute?
+          </summary>
+          <div style="margin-top: 1rem; color: #333; line-height: 1.6;">
+            <p style="margin-bottom: 1rem;">Contributions are welcome! Here's how you can help:</p>
+
+            <p style="font-weight: 600; margin-bottom: 0.5rem;">Ways to Contribute:</p>
+            <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+              <li>Report Issues: Open GitHub issues for bugs or feature requests</li>
+              <li>Submit Pull Requests: Follow TDD workflow</li>
+              <li>Write Tests: Expand test coverage</li>
+              <li>Documentation: Improve guides and examples</li>
+              <li>Commercial Support: Contact for custom development</li>
+            </ul>
+
+            <p style="font-weight: 600; margin-bottom: 0.5rem;">Development Process (TDD):</p>
+            <ol style="margin-left: 1.5rem; margin-bottom: 0;">
+              <li>Write failing test (RED)</li>
+              <li>Implement minimal code to pass (GREEN)</li>
+              <li>Refactor for quality (REFACTOR)</li>
+              <li>Follow conventional commits</li>
+            </ol>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section style="background: #f0f7ff; padding: 2rem; border-radius: 0.5rem; border: 1px solid #0066cc; margin-bottom: 3rem;">
+      <h2 style="font-size: 1.5rem; margin-bottom: 1rem; color: #1a1a1a;">Still have questions?</h2>
+      <p style="color: #333; margin-bottom: 1rem; line-height: 1.6;">
+        For more detailed information, check out the comprehensive documentation or reach out through our support channels.
+      </p>
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href={`${base}/docs`} style="color: #0066cc; font-size: 1.1rem; text-decoration: underline;">
+          Full Documentation
+        </a>
+        <span style="color: #999;">|</span>
+        <a href="https://github.com/o2alexanderfedin/cpp-to-c-transpiler/issues" style="color: #0066cc; font-size: 1.1rem; text-decoration: underline;" target="_blank" rel="noopener noreferrer">
+          GitHub Issues
+        </a>
+        <span style="color: #999;">|</span>
+        <a href="mailto:alexander.fedin@hapyy.com" style="color: #0066cc; font-size: 1.1rem; text-decoration: underline;">
+          Email Support
+        </a>
+      </div>
+    </section>
+  </div>
+
+  <style>
+    details > summary {
+      list-style: none;
+    }
+    details > summary::-webkit-details-marker {
+      display: none;
+    }
+    details[open] > summary {
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    details > summary::before {
+      content: '▶';
+      display: inline-block;
+      margin-right: 0.5rem;
+      transition: transform 0.2s;
+    }
+    details[open] > summary::before {
+      transform: rotate(90deg);
+    }
+  </style>
+</MainLayout>

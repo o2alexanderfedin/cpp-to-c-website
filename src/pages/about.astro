@@ -1,0 +1,138 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+const base = import.meta.env.BASE_URL;
+---
+
+<MainLayout title="About - C++ to C Transpiler">
+  <div class="container" style="padding: 2rem 0;">
+    <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">About</h1>
+    <p style="color: #666; margin-bottom: 2rem; font-size: 1.1rem;">
+      A research project for converting modern C++ code to clean, readable, formally-verifiable C code.
+    </p>
+
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 2rem; margin-bottom: 1rem;">Project Overview</h2>
+      <p style="color: #333; line-height: 1.6; margin-bottom: 1rem;">
+        The C++ to C Transpiler is a research project that implements a sophisticated conversion tool
+        producing high-quality, human-readable C code suitable for formal verification with tools like Frama-C.
+      </p>
+      <p style="color: #333; line-height: 1.6;">
+        Built on Clang's AST infrastructure, the transpiler uses a two-phase translation approach that
+        generates significantly cleaner code than traditional string-based transpilers while maintaining
+        full semantic correctness.
+      </p>
+    </section>
+
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 2rem; margin-bottom: 1rem;">Supported Features</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+        <div style="padding: 1rem; background: #f9f9f9; border-radius: 0.5rem;">
+          <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">✅</div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.25rem;">Classes & Inheritance</h3>
+          <p style="color: #666; font-size: 0.9rem;">Single, multiple, and virtual inheritance</p>
+        </div>
+        <div style="padding: 1rem; background: #f9f9f9; border-radius: 0.5rem;">
+          <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">✅</div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.25rem;">Templates</h3>
+          <p style="color: #666; font-size: 0.9rem;">Full monomorphization via self-bootstrapping</p>
+        </div>
+        <div style="padding: 1rem; background: #f9f9f9; border-radius: 0.5rem;">
+          <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">✅</div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.25rem;">STL Containers</h3>
+          <p style="color: #666; font-size: 0.9rem;">vector, map, set, and more</p>
+        </div>
+        <div style="padding: 1rem; background: #f9f9f9; border-radius: 0.5rem;">
+          <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">✅</div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.25rem;">RAII</h3>
+          <p style="color: #666; font-size: 0.9rem;">Resource Acquisition Is Initialization</p>
+        </div>
+        <div style="padding: 1rem; background: #f9f9f9; border-radius: 0.5rem;">
+          <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">✅</div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.25rem;">Exceptions</h3>
+          <p style="color: #666; font-size: 0.9rem;">PNaCl SJLJ pattern</p>
+        </div>
+        <div style="padding: 1rem; background: #f9f9f9; border-radius: 0.5rem;">
+          <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">✅</div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.25rem;">RTTI</h3>
+          <p style="color: #666; font-size: 0.9rem;">type_info, dynamic_cast</p>
+        </div>
+        <div style="padding: 1rem; background: #f9f9f9; border-radius: 0.5rem;">
+          <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">✅</div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.25rem;">Lambdas</h3>
+          <p style="color: #666; font-size: 0.9rem;">Closures and captures</p>
+        </div>
+        <div style="padding: 1rem; background: #f9f9f9; border-radius: 0.5rem;">
+          <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">✅</div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.25rem;">C++20 Coroutines</h3>
+          <p style="color: #666; font-size: 0.9rem;">Modern async/await patterns</p>
+        </div>
+        <div style="padding: 1rem; background: #f9f9f9; border-radius: 0.5rem;">
+          <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">✅</div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.25rem;">Smart Pointers</h3>
+          <p style="color: #666; font-size: 0.9rem;">unique_ptr, shared_ptr</p>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 2rem; margin-bottom: 1rem;">Use Cases</h2>
+      <div style="display: grid; gap: 1.5rem;">
+        <div style="padding: 1.5rem; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
+          <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">Formal Verification</h3>
+          <p style="color: #666; line-height: 1.6;">
+            Generate C code optimized for verification with Frama-C, enabling mathematical proofs
+            of correctness for safety-critical systems.
+          </p>
+        </div>
+        <div style="padding: 1.5rem; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
+          <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">Embedded Systems</h3>
+          <p style="color: #666; line-height: 1.6;">
+            Transpile C++ to portable C for embedded platforms where C++ support is limited or unavailable.
+          </p>
+        </div>
+        <div style="padding: 1.5rem; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
+          <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">Legacy System Migration</h3>
+          <p style="color: #666; line-height: 1.6;">
+            Convert C++ codebases to C for systems that require C-only compilation or for long-term
+            maintainability in C-centric environments.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 2rem; margin-bottom: 1rem;">License</h2>
+      <div style="background: #f9f9f9; padding: 2rem; border-radius: 0.5rem; border: 1px solid #e0e0e0;">
+        <div style="margin-bottom: 1.5rem;">
+          <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">Open Source License</h3>
+          <p style="color: #666; margin-bottom: 0.5rem;">
+            This project is licensed under the <strong>Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License</strong>.
+          </p>
+          <p style="color: #666; font-size: 0.9rem;">
+            You are free to use, share, and reference the work for non-commercial purposes with proper attribution.
+          </p>
+        </div>
+        <div>
+          <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">Commercial License</h3>
+          <p style="color: #666; margin-bottom: 0.5rem;">
+            Commercial licensing is available for businesses and organizations.
+          </p>
+          <p style="color: #666; font-size: 0.9rem;">
+            Contact for commercial licensing inquiries.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 style="font-size: 2rem; margin-bottom: 1rem;">Project Status</h2>
+      <div style="background: #e8f5e9; padding: 2rem; border-radius: 0.5rem; border: 1px solid #4caf50;">
+        <p style="color: #2e7d32; font-weight: 600; margin-bottom: 0.5rem;">Research v1.5.1 Complete - 97% Confidence</p>
+        <p style="color: #666; line-height: 1.6;">
+          The core architecture and feature implementations are complete. The project is currently in the documentation
+          and website development phase, with an interactive playground and comprehensive guides in progress.
+        </p>
+      </div>
+    </section>
+  </div>
+</MainLayout>

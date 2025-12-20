@@ -1,0 +1,71 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+const base = import.meta.env.BASE_URL;
+---
+
+<MainLayout title="Getting Started - C++ to C Transpiler">
+  <div class="container" style="padding: 2rem 0;">
+    <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Getting Started</h1>
+    <p style="color: #666; margin-bottom: 2rem; font-size: 1.1rem;">
+      Learn how to build and use the C++ to C Transpiler.
+    </p>
+
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 2rem; margin-bottom: 1rem;">Prerequisites</h2>
+      <ul style="list-style: disc; margin-left: 2rem; color: #333; line-height: 2;">
+        <li><strong>C++17 compatible compiler</strong> (GCC 8+, Clang 8+, MSVC 2019+)</li>
+        <li><strong>CMake 3.20+</strong></li>
+        <li><strong>Clang/LLVM 18+</strong> (for LibTooling support)</li>
+      </ul>
+    </section>
+
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 2rem; margin-bottom: 1rem;">Quick Start</h2>
+
+      <div style="margin-bottom: 2rem;">
+        <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">Clone the Repository</h3>
+        <pre style="background: #1e1e1e; color: #d4d4d4; padding: 1.5rem; border-radius: 0.5rem; overflow-x: auto; font-size: 0.9rem;">git clone --recursive https://github.com/o2alexanderfedin/cpp-to-c-transpiler.git
+cd cpp-to-c-transpiler</pre>
+      </div>
+
+      <div style="margin-bottom: 2rem;">
+        <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">Build with CMake</h3>
+        <pre style="background: #1e1e1e; color: #d4d4d4; padding: 1.5rem; border-radius: 0.5rem; overflow-x: auto; font-size: 0.9rem;">cmake -B build
+cmake --build build</pre>
+      </div>
+
+      <div style="margin-bottom: 2rem;">
+        <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">Run Tests</h3>
+        <pre style="background: #1e1e1e; color: #d4d4d4; padding: 1.5rem; border-radius: 0.5rem; overflow-x: auto; font-size: 0.9rem;">./run-all-tests.sh</pre>
+      </div>
+    </section>
+
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 2rem; margin-bottom: 1rem;">Next Steps</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+        <a href={`${base}/features`} style="padding: 1.5rem; border: 2px solid #0066cc; border-radius: 0.5rem; text-decoration: none;">
+          <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem; color: #0066cc;">Explore Features</h3>
+          <p style="color: #666;">Learn about supported C++ features and how they're transpiled to C</p>
+        </a>
+        <a href={`${base}/architecture`} style="padding: 1.5rem; border: 2px solid #0066cc; border-radius: 0.5rem; text-decoration: none;">
+          <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem; color: #0066cc;">Architecture Guide</h3>
+          <p style="color: #666;">Understand the two-phase translation approach and design decisions</p>
+        </a>
+        <a href={`${base}/examples`} style="padding: 1.5rem; border: 2px solid #0066cc; border-radius: 0.5rem; text-decoration: none;">
+          <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem; color: #0066cc;">Example Gallery</h3>
+          <p style="color: #666;">Browse real-world examples and see the transpiler in action</p>
+        </a>
+      </div>
+    </section>
+
+    <section>
+      <h2 style="font-size: 2rem; margin-bottom: 1rem;">Need Help?</h2>
+      <div style="background: #f9f9f9; padding: 2rem; border-radius: 0.5rem; border: 1px solid #e0e0e0;">
+        <p style="color: #333; line-height: 1.6; margin-bottom: 1rem;">
+          Check out the <a href={`${base}/faq`}>FAQ</a> for common questions, or visit the
+          <a href={`${base}/docs`}>documentation</a> for detailed guides.
+        </p>
+      </div>
+    </section>
+  </div>
+</MainLayout>
