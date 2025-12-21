@@ -237,6 +237,46 @@ const base = import.meta.env.BASE_URL;
           </div>
         </div>
 
+        <!-- ACSL Annotations -->
+        <div style="padding: 2rem; border: 1px solid #e0e0e0; border-radius: 0.5rem; border-left: 4px solid #2e7d32;">
+          <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #2e7d32;">
+            ACSL Annotations
+            <span style="background: #4caf50; color: white; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.7rem; margin-left: 0.5rem; vertical-align: middle;">UPDATED v1.20.0</span>
+          </h3>
+          <p style="color: #666; margin-bottom: 1rem; line-height: 1.6;">
+            Comprehensive formal specification annotations for verification with Frama-C
+          </p>
+          <div style="background: #f9f9f9; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #333;">How It Works</h4>
+            <p style="color: #666; font-size: 0.95rem; line-height: 1.6; margin-bottom: 0.75rem;">
+              The transpiler automatically generates ACSL (ANSI/ISO C Specification Language) annotations for functions,
+              loops, classes, statements, types, and axioms. Function contracts include preconditions (<code>requires</code>),
+              postconditions (<code>ensures</code>), and side effects (<code>assigns</code>). Loop annotations specify invariants,
+              variants, and modified memory. Class annotations generate invariant predicates with member constraints.
+            </p>
+            <p style="color: #666; font-size: 0.95rem; line-height: 1.6; margin-bottom: 0.75rem;">
+              Statement annotations (v1.18.0) provide inline safety checks with <code>assert</code>, <code>assume</code>, and
+              <code>check</code> for pointer validity, array bounds, and division by zero. Type invariants (v1.19.0) specify
+              structural properties with value semantics. Axiomatic definitions (v1.20.0) abstract mathematical properties
+              with logic functions, axioms, and lemmas for proof automation.
+            </p>
+            <p style="color: #666; font-size: 0.95rem; line-height: 1.6;">
+              Features include: pointer validity (<code>\valid</code>, <code>\valid_read</code>), quantifiers
+              (<code>\forall</code>, <code>\exists</code>), old values (<code>\old()</code>), fresh memory
+              (<code>\fresh()</code>), separation constraints (<code>\separated()</code>), and axiomatic blocks
+              with logic functions and axioms. Compatible with Frama-C WP plugin for deductive verification.
+            </p>
+          </div>
+          <div style="background: #e8f5e9; padding: 1rem; border-radius: 0.5rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #2e7d32;">Use Case</h4>
+            <p style="color: #2e7d32; font-size: 0.95rem; line-height: 1.6;">
+              Enable formal verification of transpiled C code with Frama-C. Automatically generate comprehensive
+              specifications for safety-critical systems, proving absence of runtime errors, memory safety, and
+              functional correctness. Axiomatic definitions help SMT solvers prove mathematical properties automatically.
+            </p>
+          </div>
+        </div>
+
       </div>
     </section>
 
