@@ -1,0 +1,133 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "C++ to C Transpiler" [ref=e5] [cursor=pointer]:
+        - /url: /cpp-to-c-website/
+      - button "Open navigation menu" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+        - generic [ref=e8]: Menu
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - generic [ref=e11]: Navigation
+      - button [ref=e12] [cursor=pointer]:
+        - img [ref=e13]
+    - navigation [ref=e16]:
+      - link [ref=e17] [cursor=pointer]:
+        - /url: /cpp-to-c-website/
+        - text: Home
+      - link [ref=e18] [cursor=pointer]:
+        - /url: /cpp-to-c-website/about
+        - text: About
+      - link [ref=e19] [cursor=pointer]:
+        - /url: /cpp-to-c-website/features
+        - text: Features
+      - link [ref=e20] [cursor=pointer]:
+        - /url: /cpp-to-c-website/architecture
+        - text: Architecture
+      - link [ref=e21] [cursor=pointer]:
+        - /url: /cpp-to-c-website/getting-started
+        - text: Get Started
+      - link [ref=e22] [cursor=pointer]:
+        - /url: /cpp-to-c-website/playground
+        - text: Playground
+      - link [ref=e23] [cursor=pointer]:
+        - /url: /cpp-to-c-website/docs
+        - text: Docs
+      - link [ref=e24] [cursor=pointer]:
+        - /url: /cpp-to-c-website/examples
+        - text: Examples
+      - link [ref=e25] [cursor=pointer]:
+        - /url: /cpp-to-c-website/benchmarks
+        - text: Benchmarks
+      - link [ref=e26] [cursor=pointer]:
+        - /url: /cpp-to-c-website/metrics
+        - text: Metrics
+      - link [ref=e27] [cursor=pointer]:
+        - /url: /cpp-to-c-website/faq
+        - text: FAQ
+  - main [ref=e28]:
+    - generic [ref=e29]:
+      - generic [ref=e30]:
+        - heading "C++ to C Transpiler" [level=1] [ref=e31]
+        - paragraph [ref=e32]: Convert modern C++ code to portable, efficient C
+        - generic [ref=e33]:
+          - link "Try it Now" [ref=e34] [cursor=pointer]:
+            - /url: /cpp-to-c-website/playground
+          - link "Documentation" [ref=e35] [cursor=pointer]:
+            - /url: /cpp-to-c-website/docs
+      - generic [ref=e36]:
+        - heading "Key Features" [level=2] [ref=e37]
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - heading "Modern C++ Support" [level=3] [ref=e40]
+            - paragraph [ref=e41]: Transpile classes, templates, inheritance, RAII, and more from C++ to clean C code.
+          - generic [ref=e42]:
+            - heading "Formal Verification NEW" [level=3] [ref=e43]
+            - paragraph [ref=e44]: Automatic ACSL annotations for Frama-C verification. Prove correctness and safety properties of transpiled code.
+          - generic [ref=e45]:
+            - heading "Portable Output" [level=3] [ref=e46]
+            - paragraph [ref=e47]: Generated C code is portable and compatible with a wide range of C compilers.
+          - generic [ref=e48]:
+            - heading "WebAssembly Powered" [level=3] [ref=e49]
+            - paragraph [ref=e50]: Try the transpiler directly in your browser with our WebAssembly-powered playground.
+      - generic [ref=e51]:
+        - heading "Get Started" [level=2] [ref=e52]
+        - paragraph [ref=e53]: Ready to transpile your C++ code? Head to the playground or read the documentation.
+        - generic [ref=e54]:
+          - link "Getting Started →" [ref=e55] [cursor=pointer]:
+            - /url: /cpp-to-c-website/getting-started
+          - link "Features →" [ref=e56] [cursor=pointer]:
+            - /url: /cpp-to-c-website/features
+          - link "Playground →" [ref=e57] [cursor=pointer]:
+            - /url: /cpp-to-c-website/playground
+          - link "Architecture →" [ref=e58] [cursor=pointer]:
+            - /url: /cpp-to-c-website/architecture
+          - link "Documentation →" [ref=e59] [cursor=pointer]:
+            - /url: /cpp-to-c-website/docs
+          - link "Examples →" [ref=e60] [cursor=pointer]:
+            - /url: /cpp-to-c-website/examples
+  - contentinfo [ref=e61]:
+    - paragraph [ref=e63]: © 2025 C++ to C Transpiler. Open Source.
+  - generic [ref=e66]:
+    - button "Menu" [ref=e67]:
+      - img [ref=e69]
+      - generic: Menu
+    - button "Inspect" [ref=e73]:
+      - img [ref=e75]
+      - generic: Inspect
+    - button "Audit" [ref=e77]:
+      - img [ref=e79]
+      - generic: Audit
+    - button "Settings" [ref=e82]:
+      - img [ref=e84]
+      - generic: Settings
+  - generic [ref=e89]:
+    - generic [ref=e90]:
+      - checkbox "Use dark theme" [ref=e91]
+      - generic [ref=e92] [cursor=pointer]:
+        - img [ref=e93]
+        - img [ref=e97]
+        - generic [ref=e101]: Use dark theme
+    - banner [ref=e102]:
+      - generic [ref=e103]:
+        - heading [level=2]
+        - heading "An error occurred." [level=1] [ref=e104]
+    - generic [ref=e106]:
+      - img [ref=e108]
+      - generic [ref=e110]: Failed to resolve import "../../../adapters/WasmTranspilerAdapter" from "src/components/playground/wizard/controllers/TranspilationController.ts". Does the file exist?
+    - generic [ref=e112]:
+      - heading "controllers/TranspilationController.ts:1:38" [level=2] [ref=e113]
+      - button "Open in editor" [ref=e115]:
+        - text: Open in editor
+        - img [ref=e116]
+    - generic [ref=e119]:
+      - generic [ref=e120]:
+        - heading "Stack Trace" [level=2] [ref=e121]
+        - img [ref=e123] [cursor=pointer]
+      - generic [ref=e127]: at TransformPluginContext._formatLog (file:///Users/alexanderfedin/Projects/hapyy/hupyy-cpp-to-c/website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:42528:41) at TransformPluginContext.error (file:///Users/alexanderfedin/Projects/hapyy/hupyy-cpp-to-c/website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:42525:16) at normalizeUrl (file:///Users/alexanderfedin/Projects/hapyy/hupyy-cpp-to-c/website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:40504:23) at process.processTicksAndRejections (node:internal/process/task_queues:105:5) at async file:///Users/alexanderfedin/Projects/hapyy/hupyy-cpp-to-c/website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:40623:37 at async Promise.all (index 0) at async TransformPluginContext.transform (file:///Users/alexanderfedin/Projects/hapyy/hupyy-cpp-to-c/website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:40550:7) at async EnvironmentPluginContainer.transform (file:///Users/alexanderfedin/Projects/hapyy/hupyy-cpp-to-c/website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:42323:18) at async loadAndTransform (file:///Users/alexanderfedin/Projects/hapyy/hupyy-cpp-to-c/website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:35739:27) at async viteTransformMiddleware (file:///Users/alexanderfedin/Projects/hapyy/hupyy-cpp-to-c/website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:37254:24)
+```

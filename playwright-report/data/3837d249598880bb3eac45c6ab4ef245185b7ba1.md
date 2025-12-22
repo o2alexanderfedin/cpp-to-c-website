@@ -1,0 +1,147 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "C++ to C Transpiler" [ref=e5] [cursor=pointer]:
+        - /url: /cpp-to-c-website/
+      - navigation [ref=e6]:
+        - link "Home" [ref=e7] [cursor=pointer]:
+          - /url: /cpp-to-c-website/
+        - link "About" [ref=e8] [cursor=pointer]:
+          - /url: /cpp-to-c-website/about
+        - link "Features" [ref=e9] [cursor=pointer]:
+          - /url: /cpp-to-c-website/features
+        - link "Architecture" [ref=e10] [cursor=pointer]:
+          - /url: /cpp-to-c-website/architecture
+        - link "Get Started" [ref=e11] [cursor=pointer]:
+          - /url: /cpp-to-c-website/getting-started
+        - link "Playground" [ref=e12] [cursor=pointer]:
+          - /url: /cpp-to-c-website/playground
+        - link "Docs" [ref=e13] [cursor=pointer]:
+          - /url: /cpp-to-c-website/docs
+        - link "Examples" [ref=e14] [cursor=pointer]:
+          - /url: /cpp-to-c-website/examples
+        - link "Benchmarks" [ref=e15] [cursor=pointer]:
+          - /url: /cpp-to-c-website/benchmarks
+        - link "Metrics" [ref=e16] [cursor=pointer]:
+          - /url: /cpp-to-c-website/metrics
+        - link "FAQ" [ref=e17] [cursor=pointer]:
+          - /url: /cpp-to-c-website/faq
+  - main [ref=e18]:
+    - generic [ref=e19]:
+      - generic [ref=e21]:
+        - heading "Browser Compatibility" [level=2] [ref=e22]
+        - paragraph [ref=e23]: "✓ Full support: Your browser supports all playground features including directory selection and file writing."
+      - generic [ref=e25]:
+        - heading "How to Use" [level=2] [ref=e26]
+        - list [ref=e27]:
+          - listitem [ref=e28]:
+            - strong [ref=e29]: "Select Directory:"
+            - text: Click "Select Directory" or drag-and-drop a folder containing C++ files (.cpp, .h, .hpp).
+          - listitem [ref=e30]:
+            - strong [ref=e31]: "Transpile:"
+            - text: Click "Transpile Project" to convert all C++ files to C.
+          - listitem [ref=e32]:
+            - strong [ref=e33]: "Review Results:"
+            - text: Check the progress indicator and review any errors that occurred.
+          - listitem [ref=e34]:
+            - strong [ref=e35]: "Download Output:"
+            - text: The transpiled C files will be available for download (or written back to disk on Chrome/Edge).
+        - heading "Supported File Types" [level=3] [ref=e36]
+        - list [ref=e37]:
+          - listitem [ref=e38]: .cpp - C++ source files
+          - listitem [ref=e39]: .cc, .cxx - Alternative C++ source file extensions
+          - listitem [ref=e40]: .h - C/C++ header files
+          - listitem [ref=e41]: .hpp, .hxx - C++ header files
+        - heading "Features" [level=3] [ref=e42]
+        - list [ref=e43]:
+          - listitem [ref=e44]: Whole-project transpilation with directory structure preservation
+          - listitem [ref=e45]: Real-time progress reporting with file count and percentage
+          - listitem [ref=e46]: Detailed error reporting per file
+          - listitem [ref=e47]: Cancellation support for long-running operations
+          - listitem [ref=e48]: "Accessibility: Full keyboard navigation and screen reader support"
+        - heading "Browser Requirements" [level=3] [ref=e49]
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - heading "Tier 1 (Full Support)" [level=4] [ref=e52]
+            - paragraph [ref=e53]: Chrome 105+, Edge 105+
+            - paragraph [ref=e54]:
+              - text: ✓ Directory selection
+              - text: ✓ Drag-and-drop
+              - text: ✓ Read/write access
+              - text: ✓ Permission management
+          - generic [ref=e55]:
+            - heading "Tier 2 (Partial Support)" [level=4] [ref=e56]
+            - paragraph [ref=e57]: Firefox, Safari (desktop)
+            - paragraph [ref=e58]:
+              - text: ✓ Directory selection (webkitdirectory)
+              - text: ✓ Read access only
+              - text: ✗ No write-back (download instead)
+              - text: ⚠ Limited drag-and-drop
+          - generic [ref=e59]:
+            - heading "Tier 3 (Limited Support)" [level=4] [ref=e60]
+            - paragraph [ref=e61]: Mobile browsers
+            - paragraph [ref=e62]:
+              - text: ⚠ Single file upload only
+              - text: ✗ No directory selection
+              - text: ✗ No write-back
+              - text: ⚠ Basic functionality
+      - generic [ref=e64]:
+        - heading "Performance" [level=2] [ref=e65]
+        - paragraph [ref=e66]: "The playground uses server-side transpilation for maximum compatibility and keeps the browser bundle lightweight. Typical performance:"
+        - list [ref=e67]:
+          - listitem [ref=e68]:
+            - strong [ref=e69]: Small projects
+            - text: "(<10 files): <2 seconds"
+          - listitem [ref=e70]:
+            - strong [ref=e71]: Medium projects
+            - text: "(10-100 files): <5 seconds"
+          - listitem [ref=e72]:
+            - strong [ref=e73]: Large projects
+            - text: "(100-500 files): <60 seconds"
+        - paragraph [ref=e74]: Performance depends on network latency, file size, and code complexity. The transpiler processes files in parallel for optimal throughput.
+  - contentinfo [ref=e75]:
+    - paragraph [ref=e77]: © 2025 C++ to C Transpiler. Open Source.
+  - generic [ref=e80]:
+    - button "Menu" [ref=e81]:
+      - img [ref=e83]
+      - generic: Menu
+    - button "Inspect" [ref=e87]:
+      - img [ref=e89]
+      - generic: Inspect
+    - button "Audit" [ref=e91]:
+      - img [ref=e93]
+      - generic: Audit
+    - button "Settings" [ref=e96]:
+      - img [ref=e98]
+      - generic: Settings
+  - generic [ref=e103]:
+    - generic [ref=e104]:
+      - checkbox "Use dark theme" [ref=e105]
+      - generic [ref=e106] [cursor=pointer]:
+        - img [ref=e107]
+        - img [ref=e111]
+        - generic [ref=e115]: Use dark theme
+    - banner [ref=e116]:
+      - generic [ref=e117]:
+        - heading [level=2]
+        - heading "An error occurred." [level=1] [ref=e118]
+      - img [ref=e121]
+    - generic [ref=e125]:
+      - img [ref=e127]
+      - generic [ref=e129]: Failed to resolve import "../../../adapters/WasmTranspilerAdapter" from "src/components/playground/wizard/controllers/TranspilationController.ts". Does the file exist?
+    - generic [ref=e131]:
+      - heading "controllers/TranspilationController.ts:1:38" [level=2] [ref=e132]
+      - button "Open in editor" [ref=e134]:
+        - text: Open in editor
+        - img [ref=e135]
+    - generic [ref=e138]:
+      - generic [ref=e139]:
+        - heading "Stack Trace" [level=2] [ref=e140]
+        - img [ref=e142] [cursor=pointer]
+      - generic [ref=e146]: at TransformPluginContext._formatLog (file:///Users/alexanderfedin/Projects/hapyy/hupyy-cpp-to-c/website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:42528:41) at TransformPluginContext.error (file:///Users/alexanderfedin/Projects/hapyy/hupyy-cpp-to-c/website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:42525:16) at normalizeUrl (file:///Users/alexanderfedin/Projects/hapyy/hupyy-cpp-to-c/website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:40504:23) at process.processTicksAndRejections (node:internal/process/task_queues:105:5) at async file:///Users/alexanderfedin/Projects/hapyy/hupyy-cpp-to-c/website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:40623:37 at async Promise.all (index 0) at async TransformPluginContext.transform (file:///Users/alexanderfedin/Projects/hapyy/hupyy-cpp-to-c/website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:40550:7) at async EnvironmentPluginContainer.transform (file:///Users/alexanderfedin/Projects/hapyy/hupyy-cpp-to-c/website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:42323:18) at async loadAndTransform (file:///Users/alexanderfedin/Projects/hapyy/hupyy-cpp-to-c/website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:35739:27) at async viteTransformMiddleware (file:///Users/alexanderfedin/Projects/hapyy/hupyy-cpp-to-c/website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:37254:24)
+```

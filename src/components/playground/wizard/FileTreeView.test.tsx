@@ -623,8 +623,9 @@ describe('FileTreeView', () => {
 
       render(<FileTreeView files={mockFiles} fileStatuses={statuses} />);
 
-      // Should display default file icon
-      expect(screen.getByText('📄')).toBeInTheDocument();
+      // Should display default file icons (multiple files)
+      const fileIcons = screen.getAllByText('📄');
+      expect(fileIcons.length).toBeGreaterThan(0);
     });
 
     it('handles mixed status states correctly', () => {

@@ -31,6 +31,14 @@ vi.mock('./DualPaneViewer', () => ({
   ),
 }));
 
+vi.mock('./DownloadOptions', () => ({
+  DownloadOptions: () => <div data-testid="download-options">Download Options</div>,
+}));
+
+vi.mock('./ErrorSummary', () => ({
+  ErrorSummary: () => <div data-testid="error-summary">Error Summary</div>,
+}));
+
 describe('Step4Results', () => {
   const createMockState = (overrides?: Partial<WizardState>): WizardState => ({
     sourceDir: {} as any,
@@ -53,6 +61,7 @@ describe('Step4Results', () => {
     ]),
     currentFile: null,
     isTranspiling: false,
+    transpileStartTime: null,
     selectedPreviewFile: null,
     ...overrides,
   });
