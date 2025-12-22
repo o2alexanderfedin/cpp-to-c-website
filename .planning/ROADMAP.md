@@ -82,16 +82,22 @@
 
 **Plans**:
 
-### 02-01: FileTreeView Component Foundation
-**Scope**: Basic tree rendering with expand/collapse
+### 02-01: FileTreeView Component Foundation ✅ COMPLETE
+**Scope**: Basic tree rendering with expand/collapse using react-arborist
 **Tasks**:
-1. Create `FileTreeView.tsx` with recursive tree structure
-2. Implement expand/collapse logic for folders
-3. Add file/folder icons and indentation styling
+1. ✅ Install react-arborist dependency
+2. ✅ Create buildTreeData utility to transform flat FileInfo[] to tree structure
+3. ✅ Create FileTreeView component with expand/collapse functionality
+4. ✅ Add file/folder icons and indentation styling
+5. ✅ Write comprehensive tests (24 tests passing)
+6. ✅ Export via barrel file with TypeScript types
+7. ✅ Add JSDoc documentation
+8. ✅ Manual testing in Step1 with mock data
 
-**Files**: `src/components/playground/wizard/FileTreeView.tsx`
-**Verify**: Tree renders nested structure, folders expand/collapse
-**Estimate**: 2 hours
+**Files**: `src/components/playground/wizard/FileTreeView.tsx`, `utils/buildTreeData.ts`, tests
+**Verify**: ✅ Tree renders nested structure, folders expand/collapse, all tests passing
+**Completed**: 2025-12-22
+**Actual**: 2 hours
 
 ### 02-02: Tree Virtualization
 **Scope**: Add react-window for performance with large file lists
@@ -311,8 +317,8 @@
 |-------|------|--------|-----------|
 | 1 | 01-01 | ✅ Complete | 2025-12-22 |
 | 1 | 01-02 | ✅ Complete | 2025-12-22 |
-| 1 | 01-03 | ⬜ Not Started | - |
-| 2 | 02-01 | ⬜ Not Started | - |
+| 1 | 01-03 | ✅ Complete | 2025-12-22 |
+| 2 | 02-01 | ✅ Complete | 2025-12-22 |
 | 2 | 02-02 | ⬜ Not Started | - |
 | 2 | 02-03 | ⬜ Not Started | - |
 | 2 | 02-04 | ⬜ Not Started | - |
