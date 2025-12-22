@@ -34,6 +34,7 @@ describe('Step2TargetSelection', () => {
     transpilationResults: new Map(),
     currentFile: null,
     isTranspiling: false,
+    transpileStartTime: null,
     selectedPreviewFile: null
   };
 

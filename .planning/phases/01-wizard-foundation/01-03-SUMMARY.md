@@ -105,4 +105,4 @@ Phase 2 will add:
 
 ## Commits
 
-- `[pending]` feat(01-03): Add wizard E2E navigation tests
+- `d2300f4` feat(01-03): Add wizard E2E navigation tests

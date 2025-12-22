@@ -12,6 +12,8 @@ export { DualPaneViewer } from './DualPaneViewer';
 export { SyntaxHighlighter } from './SyntaxHighlighter';
 export { PermissionIndicator } from './PermissionIndicator';
 export { ConflictWarning } from './ConflictWarning';
+export { DownloadOptions } from './DownloadOptions';
+export { ErrorSummary } from './ErrorSummary';
 
 // Controllers
 export { TranspilationController, TranspilationEventType } from './controllers/TranspilationController';
@@ -38,6 +40,13 @@ export {
   convertToTargetFileName,
   getConflictingFiles
 } from './utils/detectConflicts';
+export {
+  downloadFile,
+  createZipArchive,
+  downloadZip,
+  calculateTotalBytes,
+  formatBytes
+} from './utils/downloadHelpers';
 
 // Types
 export type {
@@ -53,6 +62,8 @@ export type { DualPaneViewerProps } from './DualPaneViewer';
 export type { SyntaxHighlighterProps } from './SyntaxHighlighter';
 export type { PermissionIndicatorProps } from './PermissionIndicator';
 export type { ConflictWarningProps } from './ConflictWarning';
+export type { DownloadOptionsProps } from './DownloadOptions';
+export type { ErrorSummaryProps } from './ErrorSummary';
 export type { PermissionStatus } from './utils/checkDirectoryPermissions';
 export type { FileConflict, ConflictDetectionResult } from './utils/detectConflicts';
 export type { TranspilationEvent, TranspilationEventListener } from './controllers/TranspilationController';

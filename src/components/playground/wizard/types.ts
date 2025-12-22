@@ -14,6 +14,7 @@ export interface WizardState {
   transpilationResults: Map<string, TranspileResult>;
   currentFile: string | null;
   isTranspiling: boolean;
+  transpileStartTime: number | null; // Timestamp when transpilation started
 
   // Step 4: Results
   selectedPreviewFile: string | null;
@@ -45,4 +46,5 @@ export interface TranspileResult {
   cCode?: string;
   error?: string;
   diagnostics?: string[];
+  sourcePath?: string;
 }

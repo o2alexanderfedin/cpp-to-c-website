@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { WizardStepper } from './WizardStepper';
+import { FileTreeView, FileStatus } from './FileTreeView';
+import { useTranspilation } from './hooks/useTranspilation';
 import type { WizardState } from './types';
 
 interface Step3Props {
@@ -15,12 +17,226 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
   onPauseTranspilation,
   onCancelTranspilation
 }) => {
+  const [currentFile, setCurrentFile] = useState<string | null>(null);
+  const [fileStatuses, setFileStatuses] = useState<Map<string, FileStatus>>(new Map());
+  const [progress, setProgress] = useState({ current: 0, total: 0, percentage: 0 });
+  const [metrics, setMetrics] = useState({
+    elapsedMs: 0,
+    filesPerSecond: 0,
+    estimatedRemainingMs: 0
+  });
+  const [isPaused, setIsPaused] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Initialize all files as pending
+  useEffect(() => {
+    const initialStatuses = new Map<string, FileStatus>();
+    state.sourceFiles.forEach(file => {
+      initialStatuses.set(file.path, FileStatus.PENDING);
+    });
+    setFileStatuses(initialStatuses);
+  }, [state.sourceFiles]);
+
+  // Transpilation hook with callbacks
+  const transpilation = useTranspilation({
+    onFileStarted: (filePath) => {
+      setCurrentFile(filePath);
+      setFileStatuses(prev => {
+        const updated = new Map(prev);
+        updated.set(filePath, FileStatus.IN_PROGRESS);
+        return updated;
+      });
+    },
+    onFileCompleted: (filePath, result) => {
+      setFileStatuses(prev => {
+        const updated = new Map(prev);
+        updated.set(filePath, result.success ? FileStatus.SUCCESS : FileStatus.ERROR);
+        return updated;
+      });
+    },
+    onFileError: (filePath, errorMsg) => {
+      setFileStatuses(prev => {
+        const updated = new Map(prev);
+        updated.set(filePath, FileStatus.ERROR);
+        return updated;
+      });
+      console.error(`Error transpiling ${filePath}:`, errorMsg);
+    },
+    onProgress: (current, total, percentage) => {
+      setProgress({ current, total, percentage });
+    },
+    onMetrics: (elapsedMs, filesPerSecond, estimatedRemainingMs) => {
+      setMetrics({ elapsedMs, filesPerSecond, estimatedRemainingMs });
+    },
+    onCompleted: () => {
+      setIsComplete(true);
+      setCurrentFile(null);
+    },
+    onCancelled: () => {
+      onCancelTranspilation();
+      setCurrentFile(null);
+    },
+    onError: (errorMsg) => {
+      setError(errorMsg);
+    }
+  });
+
+  // Auto-start transpilation when entering this step
+  useEffect(() => {
+    if (!hasStarted && state.sourceFiles.length > 0 && state.targetDir) {
+      setHasStarted(true);
+      onStartTranspilation();
+
+      // Start transpilation
+      transpilation.start(
+        state.sourceFiles,
+        state.targetDir,
+        state.targetOptions
+      );
+    }
+  }, [hasStarted, state, onStartTranspilation, transpilation]);
+
+  const handlePause = useCallback(() => {
+    transpilation.pause();
+    setIsPaused(true);
+    onPauseTranspilation();
+  }, [transpilation, onPauseTranspilation]);
+
+  const handleResume = useCallback(() => {
+    transpilation.resume();
+    setIsPaused(false);
+  }, [transpilation]);
+
+  const handleCancel = useCallback(() => {
+    transpilation.cancel();
+  }, [transpilation]);
+
+  // Format time in MM:SS
+  const formatTime = (ms: number): string => {
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  // Count files by status
+  const successCount = Array.from(fileStatuses.values()).filter(s => s === FileStatus.SUCCESS).length;
+  const errorCount = Array.from(fileStatuses.values()).filter(s => s === FileStatus.ERROR).length;
+
   return (
     <>
       <WizardStepper />
       <div className="wizard-step-content">
         <h2>Step 3: Transpilation</h2>
-        <p>Transpile with real-time progress (functionality coming in Phase 3)</p>
+        <p className="step-description">
+          Transpiling your C++ files to C...
+        </p>
+
+        <div className="transpilation-layout">
+          {/* Left: Progress and Controls */}
+          <div className="progress-section">
+            {/* Progress Bar */}
+            <div className="progress-container">
+              <div className="progress-bar">
+                <div
+                  className="progress-fill"
+                  style={{ width: `${progress.percentage}%` }}
+                />
+              </div>
+              <div className="progress-text">
+                {progress.current} of {progress.total} files ({Math.round(progress.percentage)}%)
+              </div>
+            </div>
+
+            {/* Current File */}
+            {currentFile && (
+              <div className="current-file">
+                <strong>Processing:</strong> <code>{currentFile}</code>
+              </div>
+            )}
+
+            {/* Status Summary */}
+            <div className="status-summary">
+              <div className="status-item success">
+                <span className="status-icon">✓</span>
+                <span className="status-count">{successCount} successful</span>
+              </div>
+              {errorCount > 0 && (
+                <div className="status-item error">
+                  <span className="status-icon">✗</span>
+                  <span className="status-count">{errorCount} errors</span>
+                </div>
+              )}
+            </div>
+
+            {/* Metrics */}
+            <div className="metrics">
+              <div className="metric">
+                <span className="metric-label">Elapsed Time:</span>
+                <span className="metric-value">{formatTime(metrics.elapsedMs)}</span>
+              </div>
+              <div className="metric">
+                <span className="metric-label">Speed:</span>
+                <span className="metric-value">
+                  {metrics.filesPerSecond.toFixed(1)} files/sec
+                </span>
+              </div>
+              <div className="metric">
+                <span className="metric-label">Estimated Remaining:</span>
+                <span className="metric-value">
+                  {formatTime(metrics.estimatedRemainingMs)}
+                </span>
+              </div>
+            </div>
+
+            {/* Control Buttons */}
+            {!isComplete && (
+              <div className="transpilation-controls">
+                {!isPaused ? (
+                  <button className="control-button pause" onClick={handlePause}>
+                    Pause
+                  </button>
+                ) : (
+                  <button className="control-button resume" onClick={handleResume}>
+                    Resume
+                  </button>
+                )}
+                <button className="control-button cancel" onClick={handleCancel}>
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            {/* Completion Message */}
+            {isComplete && (
+              <div className="completion-message">
+                ✓ Transpilation complete! {successCount} files processed successfully
+                {errorCount > 0 && `, ${errorCount} errors.`}
+              </div>
+            )}
+
+            {/* Error Display */}
+            {error && (
+              <div className="error-message">
+                Error: {error}
+              </div>
+            )}
+          </div>
+
+          {/* Right: File Tree with Live Status */}
+          <div className="tree-section">
+            <h3>File Status</h3>
+            <FileTreeView
+              files={state.sourceFiles}
+              selectedFile={currentFile ?? undefined}
+              fileStatuses={fileStatuses}
+              height={500}
+              autoScroll={true}
+            />
+          </div>
+        </div>
       </div>
 
       <style>{`
@@ -30,6 +246,201 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
           border-radius: 8px;
           padding: 2rem;
           min-height: 400px;
+        }
+
+        .wizard-step-content h2 {
+          margin: 0 0 0.5rem 0;
+          font-size: 1.75rem;
+          color: #333;
+        }
+
+        .step-description {
+          margin: 0 0 1.5rem 0;
+          color: #666;
+        }
+
+        .transpilation-layout {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+          .transpilation-layout {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        .progress-section {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .tree-section h3 {
+          margin: 0 0 1rem 0;
+          font-size: 1.25rem;
+          color: #333;
+        }
+
+        .progress-container {
+          /* Existing progress bar styles */
+        }
+
+        .progress-bar {
+          width: 100%;
+          height: 32px;
+          background-color: #f0f0f0;
+          border-radius: 4px;
+          overflow: hidden;
+          border: 1px solid #ddd;
+        }
+
+        .progress-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #4A90E2 0%, #357abd 100%);
+          transition: width 0.3s ease;
+        }
+
+        .progress-text {
+          margin-top: 0.5rem;
+          text-align: center;
+          font-size: 0.875rem;
+          color: #666;
+        }
+
+        .current-file {
+          padding: 0.75rem;
+          background-color: #e7f3ff;
+          border: 1px solid #b3d9ff;
+          border-radius: 4px;
+        }
+
+        .current-file code {
+          font-family: 'Courier New', monospace;
+          font-size: 0.9rem;
+          margin-left: 0.5rem;
+        }
+
+        .status-summary {
+          display: flex;
+          gap: 1rem;
+        }
+
+        .status-item {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.5rem 0.75rem;
+          border-radius: 4px;
+        }
+
+        .status-item.success {
+          background-color: #d4edda;
+          color: #155724;
+        }
+
+        .status-item.error {
+          background-color: #f8d7da;
+          color: #721c24;
+        }
+
+        .status-icon {
+          font-size: 1.25rem;
+          font-weight: bold;
+        }
+
+        .status-count {
+          font-size: 0.875rem;
+          font-weight: 500;
+        }
+
+        .metrics {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 1rem;
+        }
+
+        .metric {
+          padding: 0.75rem;
+          background-color: #f9f9f9;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .metric-label {
+          font-size: 0.75rem;
+          color: #666;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: #333;
+        }
+
+        .transpilation-controls {
+          display: flex;
+          gap: 0.75rem;
+        }
+
+        .control-button {
+          padding: 0.5rem 1.5rem;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 0.875rem;
+          font-weight: 500;
+          transition: all 0.15s;
+        }
+
+        .control-button.pause {
+          background-color: #ffc107;
+          color: #333;
+        }
+
+        .control-button.pause:hover {
+          background-color: #e0a800;
+        }
+
+        .control-button.resume {
+          background-color: #28a745;
+          color: white;
+        }
+
+        .control-button.resume:hover {
+          background-color: #218838;
+        }
+
+        .control-button.cancel {
+          background-color: #dc3545;
+          color: white;
+        }
+
+        .control-button.cancel:hover {
+          background-color: #c82333;
+        }
+
+        .completion-message {
+          padding: 1rem;
+          background-color: #d4edda;
+          color: #155724;
+          border: 1px solid #c3e6cb;
+          border-radius: 4px;
+          font-weight: 500;
+        }
+
+        .error-message {
+          padding: 1rem;
+          background-color: #f8d7da;
+          color: #721c24;
+          border: 1px solid #f5c6cb;
+          border-radius: 4px;
         }
       `}</style>
     </>

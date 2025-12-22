@@ -27,9 +27,11 @@
     "@types/react-dom": "^19.2.3",
     "astro": "^5.16.6",
     "jszip": "^3.10.1",
+    "prism-react-renderer": "^2.4.1",
     "react": "^19.2.3",
     "react-arborist": "^3.4.3",
     "react-dom": "^19.2.3",
+    "react-resizable-panels": "^4.0.15",
     "react-use-wizard": "^2.3.0"
   },
   "devDependencies": {

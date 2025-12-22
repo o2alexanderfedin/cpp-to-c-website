@@ -18,6 +18,7 @@ export const useWizardState = () => {
     transpilationResults: new Map(),
     currentFile: null,
     isTranspiling: false,
+    transpileStartTime: null,
     selectedPreviewFile: null
   });
 
@@ -51,7 +52,8 @@ export const useWizardState = () => {
       ...prev,
       isTranspiling: true,
       transpilationResults: new Map(),
-      currentFile: null
+      currentFile: null,
+      transpileStartTime: Date.now() // Record start time
     }));
   }, []);
 

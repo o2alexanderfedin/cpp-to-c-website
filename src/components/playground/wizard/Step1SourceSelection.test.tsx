@@ -46,6 +46,7 @@ describe('Step1SourceSelection', () => {
     transpilationResults: new Map(),
     currentFile: null,
     isTranspiling: false,
+    transpileStartTime: null,
     selectedPreviewFile: null
   };
 

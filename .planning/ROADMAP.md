@@ -157,27 +157,31 @@
 
 **Plans**:
 
-### 03-01: Target Directory Selection
+### 03-01: Target Directory Selection ✅ COMPLETE
 **Scope**: Step 2 with target directory picker
 **Tasks**:
-1. Implement `Step2TargetSelection.tsx` with directory picker
-2. Add permission verification (can write to target)
-3. Display target path and permission status
+1. ✅ Implement `Step2TargetSelection.tsx` with directory picker
+2. ✅ Add permission verification (can write to target)
+3. ✅ Display target path and permission status
 
-**Files**: `Step2TargetSelection.tsx`
-**Verify**: Can select target directory, permission status shown
-**Estimate**: 1 hour
+**Files**: `Step2TargetSelection.tsx`, `PermissionIndicator.tsx`, `checkDirectoryPermissions.ts`
+**Verify**: ✅ Can select target directory, permission status shown
+**Completed**: 2025-12-22
+**Actual**: 1 hour
 
-### 03-02: Conflict Detection
-**Scope**: Check for existing files in target directory
+### 03-02: Conflict Detection ✅ COMPLETE
+**Scope**: Check for existing files in target directory and warn about overwrites
 **Tasks**:
-1. Add file conflict detection (compare source file names with target contents)
-2. Display warning if files will be overwritten
-3. Add option to proceed or choose different directory
+1. ✅ Create conflict detection utility with extension conversion (.cpp → .c, .hpp → .h)
+2. ✅ Create ConflictWarning component with toggle details and user actions
+3. ✅ Integrate conflict detection into Step2TargetSelection
+4. ✅ Add user acknowledgment flow (must acknowledge conflicts to proceed)
+5. ✅ Write comprehensive tests (18 utility + 12 component tests, all passing)
 
-**Files**: `Step2TargetSelection.tsx`
-**Verify**: Conflicts detected and displayed, user can choose action
-**Estimate**: 1-2 hours
+**Files**: `detectConflicts.ts`, `ConflictWarning.tsx`, `Step2TargetSelection.tsx`, tests
+**Verify**: ✅ Conflicts detected accurately, warning displays, user must acknowledge, all tests passing
+**Completed**: 2025-12-22
+**Actual**: 1.5 hours
 
 ### 03-03: Live Transpilation Controller
 **Scope**: Step 3 with real-time transpilation
@@ -238,7 +242,7 @@
 - Download options (individual files, ZIP)
 - Success metrics and error summary
 
-**Dependencies**: Phase 3 (transpilation must be complete)
+### 04-01: Dual-Pane Viewer Layout ✅ COMPLETE
 
 **Plans**:
 
@@ -330,10 +334,10 @@
 | 2 | 02-01 | ✅ Complete | 2025-12-22 |
 | 2 | 02-02 | ✅ Complete | 2025-12-22 |
 | 2 | 02-03 | ✅ Complete | 2025-12-22 |
-| 2 | 02-04 | ⬜ Not Started | - |
-| 3 | 03-01 | ⬜ Not Started | - |
-| 3 | 03-02 | ⬜ Not Started | - |
-| 3 | 03-03 | ⬜ Not Started | - |
+| 2 | 02-04 | ✅ Complete | 2025-12-22 |
+| 3 | 03-01 | ✅ Complete | 2025-12-22 |
+| 3 | 03-02 | ✅ Complete | 2025-12-22 |
+| 4 | 04-01 | ✅ Complete | 2025-12-22 |
 | 3 | 03-04 | ⬜ Not Started | - |
 | 3 | 03-05 | ⬜ Not Started | - |
 | 3 | 03-06 | ⬜ Not Started | - |
