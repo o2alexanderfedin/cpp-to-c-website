@@ -25,7 +25,7 @@ test.describe('Smoke Tests', () => {
     await basePage.navigate('/');
 
     // Check for navigation elements
-    const nav = page.locator('nav');
+    const nav = page.locator('nav.tab-nav-desktop');
     await expect(nav).toBeVisible();
   });
 
@@ -33,7 +33,7 @@ test.describe('Smoke Tests', () => {
     await basePage.navigate('/playground');
 
     // Verify playground page loaded
-    const heading = page.locator('h1');
+    const heading = page.locator('main h1, #main-content h1').first();
     await expect(heading).toBeVisible();
   });
 
@@ -41,7 +41,7 @@ test.describe('Smoke Tests', () => {
     await basePage.navigate('/features');
 
     // Verify features page loaded
-    const heading = page.locator('h1');
+    const heading = page.locator('main h1, #main-content h1').first();
     await expect(heading).toBeVisible();
   });
 
@@ -49,7 +49,7 @@ test.describe('Smoke Tests', () => {
     await basePage.navigate('/docs');
 
     // Verify docs page loaded
-    const heading = page.locator('h1');
+    const heading = page.locator('main h1, #main-content h1').first();
     await expect(heading).toBeVisible();
   });
 });

@@ -7,7 +7,7 @@ export class FeaturesPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.heading = page.locator('h1');
+    this.heading = page.locator('main h1, #main-content h1').first();
     this.featuresList = page.locator('.features-list, ul');
   }
 

@@ -17,7 +17,7 @@ export class PlaygroundPage extends BasePage {
     this.progressIndicator = new ProgressIndicatorComponent(page);
     this.errorDisplay = new ErrorDisplayComponent(page);
     this.transpileButton = page.locator('button', { hasText: /transpile/i });
-    this.heading = page.locator('h1');
+    this.heading = page.locator('main h1, #main-content h1').first();
   }
 
   async navigate() {

@@ -5,7 +5,10 @@ export class BasePage {
   constructor(protected page: Page) {}
 
   async navigate(path: string = '/') {
-    await this.page.goto(path);
+    // Remove leading slash for relative navigation
+    // Playwright's baseURL will be prepended automatically
+    const relativePath = path.startsWith('/') ? path.slice(1) : path;
+    await this.page.goto(relativePath || '');
     await this.waitForLoad();
   }
 

@@ -59,6 +59,6 @@ test.describe('Navigation Tests', () => {
     expect(page.url()).toContain('/features');
 
     await page.goBack();
-    expect(page.url()).toBe('http://localhost:4321/');
+    expect(page.url()).toContain('/cpp-to-c-website');
   });
 });

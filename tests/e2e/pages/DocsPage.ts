@@ -8,7 +8,7 @@ export class DocsPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.heading = page.locator('h1');
+    this.heading = page.locator('main h1, #main-content h1').first();
     this.content = page.locator('main, .content, article');
     this.codeBlocks = page.locator('pre code, .code-block');
   }

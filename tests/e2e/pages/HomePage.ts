@@ -10,11 +10,11 @@ export class HomePage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.heading = page.locator('h1');
-    this.navigation = page.locator('nav');
-    this.playgroundLink = page.locator('a[href*="playground"]');
-    this.featuresLink = page.locator('a[href*="features"]');
-    this.docsLink = page.locator('a[href*="docs"]');
+    this.heading = page.locator('main h1, #main-content h1').first();
+    this.navigation = page.locator('nav.tab-nav-desktop');
+    this.playgroundLink = page.locator('nav.tab-nav-desktop a[href*="playground"]');
+    this.featuresLink = page.locator('nav.tab-nav-desktop a[href*="features"]');
+    this.docsLink = page.locator('nav.tab-nav-desktop a[href*="docs"]');
   }
 
   async navigate() {
