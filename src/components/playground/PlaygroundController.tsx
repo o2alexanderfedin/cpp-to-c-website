@@ -3,6 +3,7 @@ import { DirectorySelector } from './DirectorySelector';
 import { ProgressIndicator } from './ProgressIndicator';
 import { ErrorDisplay } from './ErrorDisplay';
 import { TranspileService } from '../../features/transpile/TranspileService';
+import { downloadAsZip } from '../../lib/playground/fileDownload';
 import type { ITranspiler } from '../../core/interfaces/ITranspiler';
 import type { IFileSystem } from '../../core/interfaces/IFileSystem';
 import type { TranspileError } from '../../features/transpile/types';
@@ -70,6 +71,7 @@ export const PlaygroundController: React.FC<PlaygroundControllerProps> = ({
             setStatusMessage(`Processing ${cppFiles.length} files...`);
 
             const collectedErrors: TranspileError[] = [];
+            const transpiledFiles = new Map<string, string>();
             let processedCount = 0;
 
             // Process each file
@@ -86,22 +88,25 @@ export const PlaygroundController: React.FC<PlaygroundControllerProps> = ({
 
                     // Transpile
                     const result = await transpiler.transpile(content, {
-                        filename: file.name,
+                        sourcePath: file.path,
                     });
 
                     // Collect errors if any
-                    if (!result.success && result.errors) {
-                        result.errors.forEach(error => {
-                            collectedErrors.push({
-                                ...error,
-                                filePath: file.path,
-                            });
+                    if (!result.success) {
+                        collectedErrors.push({
+                            filePath: file.path,
+                            message: result.error || 'Unknown transpilation error',
                         });
                     }
 
-                    // Write output (simplified - in real implementation would write to output directory)
-                    if (result.success && result.output) {
-                        // Would write to output directory here
+                    // Collect transpiled output
+                    if (result.success && result.cCode) {
+                        // Convert .cpp/.cc/.cxx to .c for output filename
+                        const outputPath = file.path
+                            .replace(/\.cpp$/, '.c')
+                            .replace(/\.cc$/, '.c')
+                            .replace(/\.cxx$/, '.c');
+                        transpiledFiles.set(outputPath, result.cCode);
                     }
                 } catch (err: any) {
                     collectedErrors.push({
@@ -121,6 +126,21 @@ export const PlaygroundController: React.FC<PlaygroundControllerProps> = ({
                     ? 'Transpilation completed successfully!'
                     : `Transpilation completed with ${collectedErrors.length} error${collectedErrors.length === 1 ? '' : 's'}`
             );
+
+            // Download transpiled files if any were successfully transpiled
+            if (transpiledFiles.size > 0) {
+                try {
+                    const zipName = directoryPath || 'transpiled-project';
+                    await downloadAsZip(transpiledFiles, zipName);
+                } catch (downloadErr: any) {
+                    console.error('Failed to download ZIP:', downloadErr);
+                    // Don't fail the entire transpilation if download fails
+                    setStatusMessage(
+                        prevMsg =>
+                            `${prevMsg} (Note: Download failed - ${downloadErr.message || 'Unknown error'})`
+                    );
+                }
+            }
         } catch (err: any) {
             if (err.message === 'Cancelled') {
                 setTranspileState('cancelled');

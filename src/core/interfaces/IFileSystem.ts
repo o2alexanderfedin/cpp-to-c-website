@@ -10,6 +10,31 @@
  */
 
 /**
+ * File information returned by traverseDirectory
+ */
+export interface FileInfo {
+  /**
+   * Full path to the file
+   */
+  path: string;
+
+  /**
+   * File system handle for the file (for File System Access API)
+   */
+  handle: FileSystemFileHandle;
+
+  /**
+   * File name without path
+   */
+  name: string;
+
+  /**
+   * Whether this is a directory
+   */
+  isDirectory: boolean;
+}
+
+/**
  * File system abstraction for reading, writing, and traversing files
  */
 export interface IFileSystem {
@@ -42,4 +67,11 @@ export interface IFileSystem {
    * @returns true if exists, false otherwise
    */
   exists(path: string): Promise<boolean>;
+
+  /**
+   * Recursively traverse directory and return all files
+   * @param dirHandle - Directory handle from File System Access API
+   * @returns Array of FileInfo objects for all files in directory tree
+   */
+  traverseDirectory(dirHandle: FileSystemDirectoryHandle): Promise<FileInfo[]>;
 }

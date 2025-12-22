@@ -9,7 +9,7 @@
  * - Liskov Substitution: Can replace any IFileSystem implementation
  */
 
-import type { IFileSystem } from '../core/interfaces/IFileSystem';
+import type { IFileSystem, FileInfo } from '../core/interfaces/IFileSystem';
 
 /**
  * In-memory file system implementation for testing
@@ -107,6 +107,42 @@ export class MockFileSystem implements IFileSystem {
   async exists(path: string): Promise<boolean> {
     const normalizedPath = this.normalizePath(path);
     return this.files.has(normalizedPath);
+  }
+
+  /**
+   * Recursively traverse directory and return all files
+   * @param dirHandle - Directory handle (in mock, we use the name property to find files)
+   * @returns Array of FileInfo objects for all files in directory tree
+   */
+  async traverseDirectory(dirHandle: FileSystemDirectoryHandle): Promise<FileInfo[]> {
+    const dirName = dirHandle.name;
+    const dirPath = this.normalizePath(`/${dirName}`);
+    const files: FileInfo[] = [];
+
+    // Find all files that start with this directory path
+    for (const [filePath, _content] of this.files.entries()) {
+      if (filePath.startsWith(dirPath + '/') || filePath === dirPath) {
+        // Create a mock file handle
+        const fileName = filePath.split('/').pop() || '';
+        const mockHandle = {
+          kind: 'file',
+          name: fileName,
+          getFile: async () => ({
+            name: fileName,
+            text: async () => this.files.get(filePath) || '',
+          }),
+        } as FileSystemFileHandle;
+
+        files.push({
+          path: filePath,
+          handle: mockHandle,
+          name: fileName,
+          isDirectory: false,
+        });
+      }
+    }
+
+    return files;
   }
 
   /**

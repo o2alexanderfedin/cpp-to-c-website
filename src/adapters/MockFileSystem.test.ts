@@ -138,4 +138,82 @@ describe('MockFileSystem', () => {
       expect(content2).toBe('content2');
     });
   });
+
+  describe('traverseDirectory', () => {
+    it('should return all files in directory', async () => {
+      const mockDirHandle = {
+        name: 'test-dir',
+        kind: 'directory',
+      } as FileSystemDirectoryHandle;
+
+      fs.addFile('/test-dir/file1.cpp', 'content1');
+      fs.addFile('/test-dir/file2.h', 'content2');
+
+      const files = await fs.traverseDirectory(mockDirHandle);
+
+      expect(files).toHaveLength(2);
+      expect(files[0]).toHaveProperty('path');
+      expect(files[0]).toHaveProperty('handle');
+      expect(files[0]).toHaveProperty('name');
+      expect(files[0]).toHaveProperty('isDirectory');
+    });
+
+    it('should traverse nested directories recursively', async () => {
+      const mockDirHandle = {
+        name: 'project',
+        kind: 'directory',
+      } as FileSystemDirectoryHandle;
+
+      fs.addFile('/project/main.cpp', 'main');
+      fs.addFile('/project/src/utils.cpp', 'utils');
+      fs.addFile('/project/src/lib/helper.h', 'helper');
+
+      const files = await fs.traverseDirectory(mockDirHandle);
+
+      expect(files).toHaveLength(3);
+      expect(files.map(f => f.path)).toContain('/project/main.cpp');
+      expect(files.map(f => f.path)).toContain('/project/src/utils.cpp');
+      expect(files.map(f => f.path)).toContain('/project/src/lib/helper.h');
+    });
+
+    it('should return empty array for empty directory', async () => {
+      const mockDirHandle = {
+        name: 'empty-dir',
+        kind: 'directory',
+      } as FileSystemDirectoryHandle;
+
+      fs.addDirectory('/empty-dir');
+
+      const files = await fs.traverseDirectory(mockDirHandle);
+
+      expect(files).toEqual([]);
+    });
+
+    it('should include file name in FileInfo', async () => {
+      const mockDirHandle = {
+        name: 'dir',
+        kind: 'directory',
+      } as FileSystemDirectoryHandle;
+
+      fs.addFile('/dir/test.cpp', 'content');
+
+      const files = await fs.traverseDirectory(mockDirHandle);
+
+      expect(files[0].name).toBe('test.cpp');
+    });
+
+    it('should mark all entries as non-directory', async () => {
+      const mockDirHandle = {
+        name: 'dir',
+        kind: 'directory',
+      } as FileSystemDirectoryHandle;
+
+      fs.addFile('/dir/file1.cpp', 'content1');
+      fs.addFile('/dir/file2.h', 'content2');
+
+      const files = await fs.traverseDirectory(mockDirHandle);
+
+      expect(files.every(f => f.isDirectory === false)).toBe(true);
+    });
+  });
 });

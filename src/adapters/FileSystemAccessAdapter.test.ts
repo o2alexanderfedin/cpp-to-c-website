@@ -546,4 +546,174 @@ describe('FileSystemAccessAdapter', () => {
       expect(await adapter.exists('/testdir')).toBe(false);
     });
   });
+
+  describe('traverseDirectory', () => {
+    let adapter: FileSystemAccessAdapter;
+
+    beforeEach(() => {
+      adapter = new FileSystemAccessAdapter();
+    });
+
+    it('should traverse directory and return all files', async () => {
+      const mockFile1 = {
+        kind: 'file',
+        name: 'file1.cpp',
+      } as FileSystemFileHandle;
+
+      const mockFile2 = {
+        kind: 'file',
+        name: 'file2.h',
+      } as FileSystemFileHandle;
+
+      const mockDirHandle = {
+        kind: 'directory',
+        name: 'project',
+        values: vi.fn().mockReturnValue({
+          [Symbol.asyncIterator]: async function* () {
+            yield mockFile1;
+            yield mockFile2;
+          },
+        }),
+      } as unknown as FileSystemDirectoryHandle;
+
+      const files = await adapter.traverseDirectory(mockDirHandle);
+
+      expect(files).toHaveLength(2);
+      expect(files[0].path).toBe('/project/file1.cpp');
+      expect(files[0].name).toBe('file1.cpp');
+      expect(files[0].isDirectory).toBe(false);
+      expect(files[0].handle).toBe(mockFile1);
+      expect(files[1].path).toBe('/project/file2.h');
+      expect(files[1].name).toBe('file2.h');
+    });
+
+    it('should recursively traverse nested directories', async () => {
+      const mockFile1 = {
+        kind: 'file',
+        name: 'main.cpp',
+      } as FileSystemFileHandle;
+
+      const mockFile2 = {
+        kind: 'file',
+        name: 'utils.cpp',
+      } as FileSystemFileHandle;
+
+      const mockFile3 = {
+        kind: 'file',
+        name: 'helper.h',
+      } as FileSystemFileHandle;
+
+      const mockSubDir = {
+        kind: 'directory',
+        name: 'lib',
+        values: vi.fn().mockReturnValue({
+          [Symbol.asyncIterator]: async function* () {
+            yield mockFile3;
+          },
+        }),
+      } as unknown as FileSystemDirectoryHandle;
+
+      const mockSrcDir = {
+        kind: 'directory',
+        name: 'src',
+        values: vi.fn().mockReturnValue({
+          [Symbol.asyncIterator]: async function* () {
+            yield mockFile2;
+            yield mockSubDir;
+          },
+        }),
+      } as unknown as FileSystemDirectoryHandle;
+
+      const mockRootDir = {
+        kind: 'directory',
+        name: 'project',
+        values: vi.fn().mockReturnValue({
+          [Symbol.asyncIterator]: async function* () {
+            yield mockFile1;
+            yield mockSrcDir;
+          },
+        }),
+      } as unknown as FileSystemDirectoryHandle;
+
+      const files = await adapter.traverseDirectory(mockRootDir);
+
+      expect(files).toHaveLength(3);
+      expect(files.map(f => f.name)).toContain('main.cpp');
+      expect(files.map(f => f.name)).toContain('utils.cpp');
+      expect(files.map(f => f.name)).toContain('helper.h');
+    });
+
+    it('should return empty array for empty directory', async () => {
+      const mockDirHandle = {
+        kind: 'directory',
+        name: 'empty',
+        values: vi.fn().mockReturnValue({
+          [Symbol.asyncIterator]: async function* () {
+            // No entries
+          },
+        }),
+      } as unknown as FileSystemDirectoryHandle;
+
+      const files = await adapter.traverseDirectory(mockDirHandle);
+
+      expect(files).toEqual([]);
+    });
+
+    it('should handle deeply nested directory structures', async () => {
+      const mockFile = {
+        kind: 'file',
+        name: 'deep.cpp',
+      } as FileSystemFileHandle;
+
+      const mockLevel3 = {
+        kind: 'directory',
+        name: 'c',
+        values: vi.fn().mockReturnValue({
+          [Symbol.asyncIterator]: async function* () {
+            yield mockFile;
+          },
+        }),
+      } as unknown as FileSystemDirectoryHandle;
+
+      const mockLevel2 = {
+        kind: 'directory',
+        name: 'b',
+        values: vi.fn().mockReturnValue({
+          [Symbol.asyncIterator]: async function* () {
+            yield mockLevel3;
+          },
+        }),
+      } as unknown as FileSystemDirectoryHandle;
+
+      const mockLevel1 = {
+        kind: 'directory',
+        name: 'a',
+        values: vi.fn().mockReturnValue({
+          [Symbol.asyncIterator]: async function* () {
+            yield mockLevel2;
+          },
+        }),
+      } as unknown as FileSystemDirectoryHandle;
+
+      const mockRootDir = {
+        kind: 'directory',
+        name: 'root',
+        values: vi.fn().mockReturnValue({
+          [Symbol.asyncIterator]: async function* () {
+            yield mockLevel1;
+          },
+        }),
+      } as unknown as FileSystemDirectoryHandle;
+
+      const files = await adapter.traverseDirectory(mockRootDir);
+
+      expect(files).toHaveLength(1);
+      expect(files[0].name).toBe('deep.cpp');
+      expect(files[0].path).toBe('/root/a/b/c/deep.cpp');
+    });
+
+    it('should have traverseDirectory method', () => {
+      expect(typeof adapter.traverseDirectory).toBe('function');
+    });
+  });
 });

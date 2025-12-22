@@ -23,7 +23,7 @@
 
 /// <reference path="../types/file-system-access-api.d.ts" />
 
-import type { IFileSystem } from '../core/interfaces/IFileSystem';
+import type { IFileSystem, FileInfo } from '../core/interfaces/IFileSystem';
 
 /**
  * Adapter for File System Access API
@@ -175,6 +175,54 @@ export class FileSystemAccessAdapter implements IFileSystem {
       this.fileHandles.has(normalizedPath) ||
       this.directoryHandles.has(normalizedPath)
     );
+  }
+
+  /**
+   * Recursively traverse directory and return all files
+   * @param dirHandle - Directory handle from File System Access API
+   * @returns Array of FileInfo objects for all files in directory tree
+   */
+  async traverseDirectory(dirHandle: FileSystemDirectoryHandle): Promise<FileInfo[]> {
+    const files: FileInfo[] = [];
+    await this.traverseDirectoryRecursive(dirHandle, '', files, dirHandle.name);
+    return files;
+  }
+
+  /**
+   * Helper method to recursively traverse directories
+   * @private
+   */
+  private async traverseDirectoryRecursive(
+    dirHandle: FileSystemDirectoryHandle,
+    currentPath: string,
+    files: FileInfo[],
+    rootName?: string
+  ): Promise<void> {
+    // Use rootName for the base path (only set on first call)
+    const baseName = rootName || dirHandle.name;
+
+    // Iterate over all entries in the directory
+    for await (const entry of dirHandle.values()) {
+      const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
+
+      if (entry.kind === 'file') {
+        // Add file to results
+        files.push({
+          path: `/${baseName}/${entryPath}`,
+          handle: entry as FileSystemFileHandle,
+          name: entry.name,
+          isDirectory: false,
+        });
+      } else if (entry.kind === 'directory') {
+        // Recursively traverse subdirectory
+        await this.traverseDirectoryRecursive(
+          entry as FileSystemDirectoryHandle,
+          entryPath,
+          files,
+          baseName
+        );
+      }
+    }
   }
 
   /**

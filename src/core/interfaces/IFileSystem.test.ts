@@ -97,4 +97,110 @@ describe('IFileSystem', () => {
       expect(content2).toBe('content2');
     });
   });
+
+  describe('traverseDirectory', () => {
+    let fs: MockFileSystem;
+
+    beforeEach(() => {
+      fs = new MockFileSystem();
+    });
+
+    it('should have traverseDirectory method', () => {
+      expect(typeof fs.traverseDirectory).toBe('function');
+    });
+
+    it('should return flat list of files from directory', async () => {
+      // Setup: Create a mock directory handle
+      const mockDirHandle = {
+        name: 'test-dir',
+        kind: 'directory',
+      } as FileSystemDirectoryHandle;
+
+      // Add files to mock filesystem
+      fs.addFile('/test-dir/file1.cpp', 'content1');
+      fs.addFile('/test-dir/file2.h', 'content2');
+
+      const files = await fs.traverseDirectory(mockDirHandle);
+
+      expect(files).toHaveLength(2);
+      expect(files[0]).toHaveProperty('path');
+      expect(files[0]).toHaveProperty('handle');
+      expect(files.map(f => f.path)).toContain('/test-dir/file1.cpp');
+      expect(files.map(f => f.path)).toContain('/test-dir/file2.h');
+    });
+
+    it('should traverse nested directories recursively', async () => {
+      const mockDirHandle = {
+        name: 'project',
+        kind: 'directory',
+      } as FileSystemDirectoryHandle;
+
+      // Setup nested structure
+      fs.addFile('/project/main.cpp', 'main');
+      fs.addFile('/project/src/utils.cpp', 'utils');
+      fs.addFile('/project/src/lib/helper.h', 'helper');
+      fs.addFile('/project/include/config.h', 'config');
+
+      const files = await fs.traverseDirectory(mockDirHandle);
+
+      expect(files).toHaveLength(4);
+      expect(files.map(f => f.path)).toContain('/project/main.cpp');
+      expect(files.map(f => f.path)).toContain('/project/src/utils.cpp');
+      expect(files.map(f => f.path)).toContain('/project/src/lib/helper.h');
+      expect(files.map(f => f.path)).toContain('/project/include/config.h');
+    });
+
+    it('should return empty array for empty directory', async () => {
+      const mockDirHandle = {
+        name: 'empty-dir',
+        kind: 'directory',
+      } as FileSystemDirectoryHandle;
+
+      fs.addDirectory('/empty-dir');
+
+      const files = await fs.traverseDirectory(mockDirHandle);
+
+      expect(files).toEqual([]);
+    });
+
+    it('should filter only .cpp and .h files when used with filter', async () => {
+      const mockDirHandle = {
+        name: 'mixed',
+        kind: 'directory',
+      } as FileSystemDirectoryHandle;
+
+      fs.addFile('/mixed/code.cpp', 'cpp');
+      fs.addFile('/mixed/header.h', 'h');
+      fs.addFile('/mixed/readme.txt', 'text');
+      fs.addFile('/mixed/data.json', 'json');
+
+      const files = await fs.traverseDirectory(mockDirHandle);
+      const cppFiles = files.filter(f =>
+        f.path.endsWith('.cpp') ||
+        f.path.endsWith('.h') ||
+        f.path.endsWith('.hpp') ||
+        f.path.endsWith('.cc') ||
+        f.path.endsWith('.cxx') ||
+        f.path.endsWith('.hxx')
+      );
+
+      expect(cppFiles).toHaveLength(2);
+      expect(cppFiles.map(f => f.path)).toContain('/mixed/code.cpp');
+      expect(cppFiles.map(f => f.path)).toContain('/mixed/header.h');
+    });
+
+    it('should handle deeply nested directory structures', async () => {
+      const mockDirHandle = {
+        name: 'deep',
+        kind: 'directory',
+      } as FileSystemDirectoryHandle;
+
+      fs.addFile('/deep/a/b/c/d/e/file.cpp', 'deep');
+
+      const files = await fs.traverseDirectory(mockDirHandle);
+
+      expect(files).toHaveLength(1);
+      expect(files[0].path).toBe('/deep/a/b/c/d/e/file.cpp');
+    });
+  });
 });
