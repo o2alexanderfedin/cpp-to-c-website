@@ -12,10 +12,10 @@ export default defineConfig({
     : [['html'], ['list']],
 
   use: {
-    baseURL: 'http://localhost:4321',
+    baseURL: 'http://localhost:4321/cpp-to-c-website',
 
-    // CRITICAL: Headed mode for File System Access API
-    headless: false,
+    // CRITICAL: Headed mode for File System Access API (disabled in CI/remote environments)
+    headless: true,
 
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
@@ -50,7 +50,7 @@ export default defineConfig({
 
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:4321',
+    url: 'http://localhost:4321/cpp-to-c-website',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },
