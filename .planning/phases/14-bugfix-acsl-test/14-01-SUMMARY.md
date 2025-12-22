@@ -144,7 +144,15 @@ protected:
 
 ## Commit
 
-[To be filled after commit]
+**Main Repository:**
+- Commit: `71c7eaff2fd8288a849cf7f2ca375ebfd3d86f09`
+- Message: `feat(14-01): Fix ACSLStatementAnnotatorTest exit code 138`
+- Branch: `develop`
+
+**Website Submodule:**
+- Commit: `7afa59c`
+- Message: `docs(14-01): Add Phase 14-01 completion summary`
+- Branch: `develop`
 
 ## Production Status
 
