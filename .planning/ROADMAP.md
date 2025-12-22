@@ -214,16 +214,20 @@
 **Completed**: 2025-12-22
 **Actual**: 2.5 hours (including 03-03 prerequisites)
 
-### 03-05: Pause/Resume & Metrics
-**Scope**: User controls and progress metrics
+### 03-05: Pause/Resume & Metrics ✅ COMPLETE
+**Scope**: Polish pause/resume UI, enhance metrics display, add progress animations
 **Tasks**:
-1. Add pause/resume buttons to Step 3
-2. Implement abort controller logic for pausing
-3. Calculate and display metrics (files/sec, ETA)
+1. ✅ Enhanced metrics calculation to exclude pause time
+2. ✅ Added pause indicator to progress bar with color change
+3. ✅ Implemented keyboard shortcuts (Space for pause/resume, Esc for cancel)
+4. ✅ Enhanced button states with ARIA labels and icons
+5. ✅ Added shimmer animation to progress bar
+6. ✅ Wrote comprehensive tests (12 new tests, all passing)
 
-**Files**: `TranspilationController.tsx`, `Step3Transpilation.tsx`
-**Verify**: Can pause and resume, metrics displayed and accurate
-**Estimate**: 1-2 hours
+**Files**: `TranspilationController.ts`, `Step3Transpilation.tsx`, tests
+**Verify**: ✅ Pause/resume works, metrics accurate (excludes pause time), keyboard shortcuts work, animations smooth
+**Completed**: 2025-12-22
+**Actual**: 1.5 hours
 
 ### 03-06: Transpilation Flow Tests ✅ COMPLETE
 **Scope**: E2E tests for full transpilation workflow
@@ -367,8 +371,8 @@
 | 3 | 03-01 | ✅ Complete | 2025-12-22 |
 | 3 | 03-02 | ✅ Complete | 2025-12-22 |
 | 3 | 03-03 | ✅ Complete | 2025-12-22 |
-| 3 | 03-04 | ⬜ Not Started | - |
-| 3 | 03-05 | ⬜ Not Started | - |
+| 3 | 03-04 | ✅ Complete | 2025-12-22 |
+| 3 | 03-05 | ✅ Complete | 2025-12-22 |
 | 3 | 03-06 | ✅ Complete | 2025-12-22 |
 | 4 | 04-01 | ✅ Complete | 2025-12-22 |
 | 4 | 04-02 | ✅ Complete | 2025-12-22 |

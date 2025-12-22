@@ -52,6 +52,8 @@ export class TranspilationController {
   private isPaused: boolean = false;
   private startTime: number = 0;
   private completedFiles: number = 0;
+  private pauseStartTime: number = 0;
+  private totalPausedTime: number = 0;
 
   constructor() {
     this.transpiler = new WasmTranspilerAdapter();
@@ -79,10 +81,15 @@ export class TranspilationController {
   }
 
   /**
-   * Calculate current metrics
+   * Calculate current metrics (excluding pause time)
    */
   private calculateMetrics(current: number, total: number): TranspilationEvent['metrics'] {
-    const elapsedMs = Date.now() - this.startTime;
+    const now = Date.now();
+    const activeTime = this.isPaused
+      ? (this.pauseStartTime - this.startTime - this.totalPausedTime)
+      : (now - this.startTime - this.totalPausedTime);
+
+    const elapsedMs = Math.max(0, activeTime);
     const filesPerSecond = current > 0 ? (current / elapsedMs) * 1000 : 0;
     const remainingFiles = total - current;
     const estimatedRemainingMs = filesPerSecond > 0 ? (remainingFiles / filesPerSecond) * 1000 : 0;
@@ -102,11 +109,13 @@ export class TranspilationController {
     targetDir: FileSystemDirectoryHandle,
     options: TranspileOptions
   ): Promise<void> {
-    // Reset state
+    // Reset state including pause tracking
     this.abortController = new AbortController();
     this.isPaused = false;
     this.startTime = Date.now();
     this.completedFiles = 0;
+    this.pauseStartTime = 0;
+    this.totalPausedTime = 0;
 
     const total = sourceFiles.length;
 
@@ -233,14 +242,22 @@ export class TranspilationController {
    * Pause transpilation
    */
   pause(): void {
-    this.isPaused = true;
+    if (!this.isPaused) {
+      this.isPaused = true;
+      this.pauseStartTime = Date.now();
+    }
   }
 
   /**
    * Resume transpilation
    */
   resume(): void {
-    this.isPaused = false;
+    if (this.isPaused) {
+      this.isPaused = false;
+      const pauseDuration = Date.now() - this.pauseStartTime;
+      this.totalPausedTime += pauseDuration;
+      this.pauseStartTime = 0;
+    }
   }
 
   /**

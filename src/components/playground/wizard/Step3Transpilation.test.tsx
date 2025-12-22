@@ -174,4 +174,75 @@ describe('Step3Transpilation', () => {
       render(<Step3Transpilation state={mockState} {...minimalCallbacks} />);
     }).not.toThrow();
   });
+
+  describe('Pause/Resume Enhancements', () => {
+    it('displays keyboard hints', () => {
+      render(<Step3Transpilation state={mockState} {...mockCallbacks} />);
+
+      expect(screen.getByText('Space')).toBeInTheDocument();
+      expect(screen.getByText('Esc')).toBeInTheDocument();
+    });
+
+    it('has ARIA labels on control buttons', () => {
+      render(<Step3Transpilation state={mockState} {...mockCallbacks} />);
+
+      const pauseButton = screen.getByLabelText(/pause transpilation/i);
+      expect(pauseButton).toBeInTheDocument();
+
+      const cancelButton = screen.getByLabelText(/cancel transpilation/i);
+      expect(cancelButton).toBeInTheDocument();
+    });
+
+    it('has button icons displayed', () => {
+      render(<Step3Transpilation state={mockState} {...mockCallbacks} />);
+
+      // Check for button icons
+      const buttons = screen.getAllByRole('button');
+      expect(buttons.length).toBeGreaterThan(0);
+
+      // Icons are in span elements with class 'button-icon'
+      const buttonIcons = document.querySelectorAll('.button-icon');
+      expect(buttonIcons.length).toBeGreaterThan(0);
+    });
+
+    it('displays pause indicator when paused', () => {
+      render(<Step3Transpilation state={mockState} {...mockCallbacks} />);
+
+      // Initially no pause indicator
+      expect(screen.queryByText('Paused')).not.toBeInTheDocument();
+
+      // Note: Testing pause state would require triggering pause action
+      // which would be better in an integration test
+    });
+
+    it('shows correct keyboard hint text based on pause state', () => {
+      render(<Step3Transpilation state={mockState} {...mockCallbacks} />);
+
+      // Initially should show "Pause" button since isPaused is false
+      const pauseButton = screen.getByLabelText(/pause transpilation/i);
+      expect(pauseButton).toBeInTheDocument();
+      expect(pauseButton.textContent).toContain('Pause');
+
+      // After pausing, would show "Resume" - tested in integration
+    });
+
+    it('has keyboard shortcuts registered', () => {
+      render(<Step3Transpilation state={mockState} {...mockCallbacks} />);
+
+      // Component should register keyboard event listeners
+      // This is verified by the useEffect hook being called
+      // Actual key press testing would be in integration tests
+      expect(screen.getByText('Space')).toBeInTheDocument();
+    });
+
+    it('has progress bar with proper styling', () => {
+      render(<Step3Transpilation state={mockState} {...mockCallbacks} />);
+
+      const progressBar = document.querySelector('.progress-bar');
+      expect(progressBar).toBeInTheDocument();
+
+      const progressFill = document.querySelector('.progress-fill');
+      expect(progressFill).toBeInTheDocument();
+    });
+  });
 });

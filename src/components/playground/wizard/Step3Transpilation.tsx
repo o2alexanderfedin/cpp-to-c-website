@@ -113,6 +113,35 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
     transpilation.cancel();
   }, [transpilation]);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Space = pause/resume
+      if (event.code === 'Space' && !isComplete) {
+        event.preventDefault();
+        if (isPaused) {
+          handleResume();
+        } else {
+          handlePause();
+        }
+      }
+
+      // Escape = cancel
+      if (event.code === 'Escape' && !isComplete) {
+        event.preventDefault();
+        if (window.confirm('Are you sure you want to cancel transpilation?')) {
+          handleCancel();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isPaused, isComplete, handlePause, handleResume, handleCancel]);
+
   // Format time in MM:SS
   const formatTime = (ms: number): string => {
     const seconds = Math.floor(ms / 1000);
@@ -139,11 +168,17 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
           <div className="progress-section">
             {/* Progress Bar */}
             <div className="progress-container">
-              <div className="progress-bar">
+              <div className={`progress-bar ${isPaused ? 'paused' : ''}`}>
                 <div
                   className="progress-fill"
                   style={{ width: `${progress.percentage}%` }}
                 />
+                {isPaused && (
+                  <div className="pause-indicator">
+                    <span className="pause-icon">⏸</span>
+                    <span className="pause-text">Paused</span>
+                  </div>
+                )}
               </div>
               <div className="progress-text">
                 {progress.current} of {progress.total} files ({Math.round(progress.percentage)}%)
@@ -193,19 +228,48 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
 
             {/* Control Buttons */}
             {!isComplete && (
-              <div className="transpilation-controls">
+              <div className="transpilation-controls" role="group" aria-label="Transpilation controls">
                 {!isPaused ? (
-                  <button className="control-button pause" onClick={handlePause}>
-                    Pause
+                  <button
+                    className="control-button pause"
+                    onClick={handlePause}
+                    aria-label="Pause transpilation"
+                    aria-pressed={isPaused}
+                  >
+                    <span className="button-icon">⏸</span>
+                    <span>Pause</span>
                   </button>
                 ) : (
-                  <button className="control-button resume" onClick={handleResume}>
-                    Resume
+                  <button
+                    className="control-button resume"
+                    onClick={handleResume}
+                    aria-label="Resume transpilation"
+                    aria-pressed={!isPaused}
+                  >
+                    <span className="button-icon">▶</span>
+                    <span>Resume</span>
                   </button>
                 )}
-                <button className="control-button cancel" onClick={handleCancel}>
-                  Cancel
+                <button
+                  className="control-button cancel"
+                  onClick={handleCancel}
+                  aria-label="Cancel transpilation"
+                >
+                  <span className="button-icon">✖</span>
+                  <span>Cancel</span>
                 </button>
+              </div>
+            )}
+
+            {/* Keyboard Hints */}
+            {!isComplete && (
+              <div className="keyboard-hints">
+                <span className="hint">
+                  <kbd>Space</kbd> {isPaused ? 'Resume' : 'Pause'}
+                </span>
+                <span className="hint">
+                  <kbd>Esc</kbd> Cancel
+                </span>
               </div>
             )}
 
@@ -294,12 +358,76 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
           border-radius: 4px;
           overflow: hidden;
           border: 1px solid #ddd;
+          position: relative;
+          transition: all 0.3s ease;
+        }
+
+        .progress-bar.paused {
+          border-color: #ffc107;
+          box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.2);
         }
 
         .progress-fill {
           height: 100%;
           background: linear-gradient(90deg, #4A90E2 0%, #357abd 100%);
           transition: width 0.3s ease;
+          position: relative;
+          overflow: hidden;
+        }
+
+        /* Animated shimmer effect */
+        .progress-fill::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent
+          );
+          animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+          0% {
+            left: -100%;
+          }
+          100% {
+            left: 100%;
+          }
+        }
+
+        .progress-bar.paused .progress-fill {
+          background: linear-gradient(90deg, #ffc107 0%, #e0a800 100%);
+        }
+
+        .progress-bar.paused .progress-fill::before {
+          animation: none;
+        }
+
+        .pause-indicator {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          color: #333;
+          font-weight: 600;
+          z-index: 10;
+        }
+
+        .pause-icon {
+          font-size: 1.25rem;
+        }
+
+        .pause-text {
+          font-size: 0.875rem;
         }
 
         .progress-text {
@@ -397,6 +525,22 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
           font-size: 0.875rem;
           font-weight: 500;
           transition: all 0.15s;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .button-icon {
+          font-size: 1rem;
+        }
+
+        .control-button:focus-visible {
+          outline: 2px solid #4A90E2;
+          outline-offset: 2px;
+        }
+
+        .control-button:active {
+          transform: scale(0.98);
         }
 
         .control-button.pause {
@@ -424,6 +568,33 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
 
         .control-button.cancel:hover {
           background-color: #c82333;
+        }
+
+        .keyboard-hints {
+          display: flex;
+          gap: 1rem;
+          padding: 0.75rem;
+          background-color: #f9f9f9;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          font-size: 0.75rem;
+          color: #666;
+        }
+
+        .hint {
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+        }
+
+        kbd {
+          padding: 0.125rem 0.375rem;
+          background-color: #fff;
+          border: 1px solid #ccc;
+          border-radius: 3px;
+          font-family: 'Courier New', monospace;
+          font-size: 0.75rem;
+          box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
         }
 
         .completion-message {

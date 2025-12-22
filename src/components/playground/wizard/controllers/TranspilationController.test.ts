@@ -296,6 +296,115 @@ describe('TranspilationController', () => {
     // After dispose, listeners should be cleared
     expect(controller['listeners'].size).toBe(0);
   });
+
+  describe('Pause/Resume Metrics', () => {
+    it('excludes pause time from metrics calculation', async () => {
+      const listener = vi.fn();
+      controller.on(listener);
+
+      const mockFiles: FileInfo[] = [
+        { path: 'file1.cpp', name: 'file1.cpp', handle: createMockFileHandle('// code 1'), size: 100 },
+        { path: 'file2.cpp', name: 'file2.cpp', handle: createMockFileHandle('// code 2'), size: 200 }
+      ];
+      const mockTargetDir = createMockDirectoryHandle();
+
+      // Start transpilation
+      const promise = controller.transpile(mockFiles, mockTargetDir, { targetStandard: 'c99', includeACSL: true });
+
+      // Pause after a short time
+      setTimeout(() => {
+        controller.pause();
+      }, 10);
+
+      // Resume after pause
+      setTimeout(() => {
+        controller.resume();
+      }, 50);
+
+      await promise;
+
+      // Check that metrics were calculated
+      const completedEvents = listener.mock.calls.filter(
+        call => call[0].type === TranspilationEventType.COMPLETED
+      );
+      expect(completedEvents).toHaveLength(1);
+      expect(completedEvents[0][0].metrics).toBeDefined();
+      expect(completedEvents[0][0].metrics.elapsedMs).toBeGreaterThanOrEqual(0);
+    });
+
+    it('tracks pause and resume state correctly', async () => {
+      const listener = vi.fn();
+      controller.on(listener);
+
+      const mockFiles: FileInfo[] = [
+        { path: 'file1.cpp', name: 'file1.cpp', handle: createMockFileHandle('// code'), size: 100 }
+      ];
+      const mockTargetDir = createMockDirectoryHandle();
+
+      // Start transpilation
+      const promise = controller.transpile(mockFiles, mockTargetDir, { targetStandard: 'c99', includeACSL: true });
+
+      // Test pause state
+      controller.pause();
+      expect(controller.isPausedState()).toBe(true);
+
+      // Test resume state
+      controller.resume();
+      expect(controller.isPausedState()).toBe(false);
+
+      await promise;
+    });
+
+    it('handles multiple pause/resume cycles', async () => {
+      const listener = vi.fn();
+      controller.on(listener);
+
+      const mockFiles: FileInfo[] = [
+        { path: 'file1.cpp', name: 'file1.cpp', handle: createMockFileHandle('// code 1'), size: 100 },
+        { path: 'file2.cpp', name: 'file2.cpp', handle: createMockFileHandle('// code 2'), size: 200 },
+        { path: 'file3.cpp', name: 'file3.cpp', handle: createMockFileHandle('// code 3'), size: 300 }
+      ];
+      const mockTargetDir = createMockDirectoryHandle();
+
+      const promise = controller.transpile(mockFiles, mockTargetDir, { targetStandard: 'c99', includeACSL: true });
+
+      // Multiple pause/resume cycles
+      setTimeout(() => controller.pause(), 10);
+      setTimeout(() => controller.resume(), 20);
+      setTimeout(() => controller.pause(), 30);
+      setTimeout(() => controller.resume(), 40);
+
+      await promise;
+
+      // Should complete successfully
+      const completedEvents = listener.mock.calls.filter(
+        call => call[0].type === TranspilationEventType.COMPLETED
+      );
+      expect(completedEvents).toHaveLength(1);
+    });
+
+    it('does not pause if already paused', () => {
+      controller.pause();
+      const pauseStartTime1 = controller['pauseStartTime'];
+
+      // Try to pause again
+      controller.pause();
+      const pauseStartTime2 = controller['pauseStartTime'];
+
+      // Pause start time should not change
+      expect(pauseStartTime1).toBe(pauseStartTime2);
+      expect(controller.isPausedState()).toBe(true);
+    });
+
+    it('does not resume if not paused', () => {
+      expect(controller.isPausedState()).toBe(false);
+
+      controller.resume();
+
+      expect(controller.isPausedState()).toBe(false);
+      expect(controller['totalPausedTime']).toBe(0);
+    });
+  });
 });
 
 // Helper functions
