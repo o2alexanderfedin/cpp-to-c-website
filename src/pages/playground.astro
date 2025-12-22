@@ -1,6 +1,6 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
-import PlaygroundWrapper from '../components/playground/PlaygroundWrapper';
+import { PlaygroundWizard } from '../components/playground/wizard';
 import { getBrowserCompatibilityMessage } from '../lib/playground/setup';
 
 // Get browser compatibility information for SSR (will be updated client-side)
@@ -26,8 +26,8 @@ const compatibilityMessage = getBrowserCompatibilityMessage(3); // Default to ti
       </div>
     </div>
 
-    <!-- Playground Controller Component -->
-    <PlaygroundWrapper client:only="react" />
+    <!-- Playground Wizard Component -->
+    <PlaygroundWizard client:only="react" />
 
     <!-- Usage Instructions -->
     <div class="instructions-section">
