@@ -22,6 +22,7 @@ tests/e2e/
 │   ├── PlaygroundPage.ts      # Playground page object
 │   ├── FeaturesPage.ts        # Features page object
 │   ├── DocsPage.ts            # Documentation page object
+│   ├── WizardPage.ts          # Wizard navigation page object
 │   └── components/            # Component page objects
 │       ├── DirectorySelectorComponent.ts
 │       ├── ProgressIndicatorComponent.ts
@@ -31,7 +32,8 @@ tests/e2e/
 │   ├── navigation.spec.ts    # Navigation tests
 │   ├── accessibility.spec.ts # Accessibility tests
 │   ├── api.spec.ts          # API endpoint tests
-│   └── playground.spec.ts   # Playground workflow tests
+│   ├── playground.spec.ts   # Playground workflow tests
+│   └── wizard-navigation.spec.ts # Wizard navigation tests
 ├── fixtures/                  # Test data and fixtures
 │   └── cpp-projects/         # Synthetic C++ test projects
 │       └── small-project/    # Small test project (3 files)
@@ -104,6 +106,16 @@ Complete playground workflow testing.
 - Progress indicator
 - Error display
 - Transpilation workflow
+
+### Wizard Navigation Tests
+Comprehensive wizard navigation flow testing.
+- Forward navigation through all 4 steps
+- Backward navigation to previous steps
+- Button states (enabled/disabled at correct steps)
+- Step indicator highlighting
+- Keyboard navigation (Enter on focused buttons)
+- Accessibility (ARIA labels, roles, disabled states)
+- Round-trip navigation (1→2→3→4→3→2→1)
 
 ## File System Access API Testing
 
