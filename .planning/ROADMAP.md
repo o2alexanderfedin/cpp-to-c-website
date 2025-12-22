@@ -242,7 +242,7 @@
 - Download options (individual files, ZIP)
 - Success metrics and error summary
 
-### 04-01: Dual-Pane Viewer Layout ✅ COMPLETE
+**Dependencies**: Phase 3 (transpilation must be complete)
 
 **Plans**:
 
@@ -337,7 +337,7 @@
 | 2 | 02-04 | ✅ Complete | 2025-12-22 |
 | 3 | 03-01 | ✅ Complete | 2025-12-22 |
 | 3 | 03-02 | ✅ Complete | 2025-12-22 |
-| 4 | 04-01 | ✅ Complete | 2025-12-22 |
+| 3 | 03-03 | ⬜ Not Started | - |
 | 3 | 03-04 | ⬜ Not Started | - |
 | 3 | 03-05 | ⬜ Not Started | - |
 | 3 | 03-06 | ⬜ Not Started | - |
