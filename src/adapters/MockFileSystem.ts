@@ -16,12 +16,20 @@ import type { IFileSystem } from '../core/interfaces/IFileSystem';
  */
 export class MockFileSystem implements IFileSystem {
   private files = new Map<string, string>();
+  private directories = new Set<string>();
+  private shouldFailReadPredicate?: (path: string) => boolean;
+  private shouldFailWritePredicate?: (path: string) => boolean;
 
   /**
    * Read file content from in-memory storage
    */
   async readFile(path: string): Promise<string> {
     const normalizedPath = this.normalizePath(path);
+
+    // Check if should fail
+    if (this.shouldFailReadPredicate && this.shouldFailReadPredicate(normalizedPath)) {
+      throw new Error(`Failed to read file: ${path}`);
+    }
 
     if (!this.files.has(normalizedPath)) {
       throw new Error(`File not found: ${path}`);
@@ -35,19 +43,32 @@ export class MockFileSystem implements IFileSystem {
    */
   async writeFile(path: string, content: string): Promise<void> {
     const normalizedPath = this.normalizePath(path);
+
+    // Check if should fail
+    if (this.shouldFailWritePredicate && this.shouldFailWritePredicate(normalizedPath)) {
+      throw new Error(`Failed to write file: ${path}`);
+    }
+
+    // Auto-create parent directories
+    const parentDir = this.getParentDir(normalizedPath);
+    if (parentDir && !this.directories.has(parentDir)) {
+      this.addDirectory(parentDir);
+    }
+
     this.files.set(normalizedPath, content);
   }
 
   /**
    * Read directory contents (non-recursive)
-   * Returns only direct children of the directory
+   * Returns only direct children of the directory (files and subdirectories)
    */
   async readDir(path: string): Promise<string[]> {
     const normalizedPath = this.normalizePath(path);
     const dirPrefix = normalizedPath.endsWith('/') ? normalizedPath : `${normalizedPath}/`;
 
-    const files: string[] = [];
+    const children = new Set<string>();
 
+    // Find all direct file children
     for (const filePath of this.files.keys()) {
       if (filePath.startsWith(dirPrefix)) {
         // Get the relative path from the directory
@@ -55,12 +76,29 @@ export class MockFileSystem implements IFileSystem {
 
         // Only include direct children (no nested paths)
         if (!relativePath.includes('/')) {
-          files.push(relativePath);
+          children.add(relativePath);
+        } else {
+          // Add the first directory component
+          const firstDir = relativePath.split('/')[0];
+          children.add(firstDir);
         }
       }
     }
 
-    return files;
+    // Also check registered directories
+    for (const dirPath of this.directories) {
+      if (dirPath.startsWith(dirPrefix) && dirPath !== normalizedPath) {
+        const relativePath = dirPath.substring(dirPrefix.length);
+        if (!relativePath.includes('/')) {
+          children.add(relativePath);
+        } else {
+          const firstDir = relativePath.split('/')[0];
+          children.add(firstDir);
+        }
+      }
+    }
+
+    return Array.from(children);
   }
 
   /**
@@ -76,7 +114,29 @@ export class MockFileSystem implements IFileSystem {
    */
   addFile(path: string, content: string): void {
     const normalizedPath = this.normalizePath(path);
+
+    // Auto-create parent directories
+    const parentDir = this.getParentDir(normalizedPath);
+    if (parentDir && !this.directories.has(parentDir)) {
+      this.addDirectory(parentDir);
+    }
+
     this.files.set(normalizedPath, content);
+  }
+
+  /**
+   * Test helper: Add directory to storage (synchronous)
+   */
+  addDirectory(path: string): void {
+    const normalizedPath = this.normalizePath(path);
+    this.directories.add(normalizedPath);
+
+    // Also add all parent directories
+    const parts = normalizedPath.split('/').filter(Boolean);
+    for (let i = 1; i < parts.length; i++) {
+      const parentPath = '/' + parts.slice(0, i).join('/');
+      this.directories.add(parentPath);
+    }
   }
 
   /**
@@ -84,6 +144,7 @@ export class MockFileSystem implements IFileSystem {
    */
   clear(): void {
     this.files.clear();
+    this.directories.clear();
   }
 
   /**
@@ -91,6 +152,32 @@ export class MockFileSystem implements IFileSystem {
    */
   getAllPaths(): string[] {
     return Array.from(this.files.keys());
+  }
+
+  /**
+   * Test helper: Set files that should fail on read
+   */
+  setShouldFailRead(predicate: (path: string) => boolean): void {
+    this.shouldFailReadPredicate = predicate;
+  }
+
+  /**
+   * Test helper: Set files that should fail on write
+   */
+  setShouldFailWrite(predicate: (path: string) => boolean): void {
+    this.shouldFailWritePredicate = predicate;
+  }
+
+  /**
+   * Get parent directory path
+   * @private
+   */
+  private getParentDir(path: string): string | null {
+    const parts = path.split('/').filter(Boolean);
+    if (parts.length <= 1) {
+      return null;
+    }
+    return '/' + parts.slice(0, -1).join('/');
   }
 
   /**

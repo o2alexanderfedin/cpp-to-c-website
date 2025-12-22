@@ -20,6 +20,10 @@ import type {
  * Mock transpiler for testing
  */
 export class MockTranspiler implements ITranspiler {
+  private shouldFailPredicate?: (path?: string) => boolean;
+  private errorMessage = 'Transpilation failed';
+  public onTranspile?: () => void | Promise<void>;
+
   /**
    * Transpile C++ source to mock C code
    */
@@ -27,6 +31,20 @@ export class MockTranspiler implements ITranspiler {
     source: string,
     options?: TranspileOptions
   ): Promise<TranspileResult> {
+    // Call onTranspile callback if set (for test hooks)
+    if (this.onTranspile) {
+      await this.onTranspile();
+    }
+
+    // Check if this transpilation should fail (for testing)
+    if (this.shouldFailPredicate && this.shouldFailPredicate(options?.sourcePath)) {
+      return {
+        success: false,
+        error: this.errorMessage,
+        sourcePath: options?.sourcePath,
+      };
+    }
+
     // Handle empty input
     if (!source || source.trim() === '') {
       return {
@@ -126,5 +144,19 @@ export class MockTranspiler implements ITranspiler {
     fn: (source: string) => Promise<ValidationResult>
   ): void {
     this.validateInput = fn;
+  }
+
+  /**
+   * Test helper: Set transpilation to fail for certain paths
+   */
+  setShouldFail(predicate: (path?: string) => boolean): void {
+    this.shouldFailPredicate = predicate;
+  }
+
+  /**
+   * Test helper: Set custom error message
+   */
+  setErrorMessage(message: string): void {
+    this.errorMessage = message;
   }
 }

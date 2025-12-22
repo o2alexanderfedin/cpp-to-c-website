@@ -22,6 +22,15 @@ export class MockProgressReporter implements IProgressReporter {
     percentage: 0,
   };
 
+  // Test tracking properties
+  public startCalled = false;
+  public startTotal = 0;
+  public updateCallCount = 0;
+  public updates: Array<{ current: number; total: number; message?: string }> = [];
+  public completeCalled = false;
+  public errorCalled = false;
+  public lastErrorMessage?: string;
+
   /**
    * Start progress tracking
    */
@@ -32,6 +41,8 @@ export class MockProgressReporter implements IProgressReporter {
       percentage: 0,
       message: undefined,
     };
+    this.startCalled = true;
+    this.startTotal = total;
   }
 
   /**
@@ -41,6 +52,8 @@ export class MockProgressReporter implements IProgressReporter {
     this.state.current = current;
     this.state.message = message;
     this.state.percentage = this.calculatePercentage(current, this.state.total);
+    this.updateCallCount++;
+    this.updates.push({ current, total: this.state.total, message });
   }
 
   /**
@@ -50,6 +63,7 @@ export class MockProgressReporter implements IProgressReporter {
     this.state.current = this.state.total;
     this.state.percentage = 100;
     this.state.message = undefined;
+    this.completeCalled = true;
   }
 
   /**
@@ -57,6 +71,8 @@ export class MockProgressReporter implements IProgressReporter {
    */
   error(message: string): void {
     this.state.message = message;
+    this.errorCalled = true;
+    this.lastErrorMessage = message;
   }
 
   /**
@@ -90,6 +106,13 @@ export class MockProgressReporter implements IProgressReporter {
       current: 0,
       percentage: 0,
     };
+    this.startCalled = false;
+    this.startTotal = 0;
+    this.updateCallCount = 0;
+    this.updates = [];
+    this.completeCalled = false;
+    this.errorCalled = false;
+    this.lastErrorMessage = undefined;
   }
 
   /**
