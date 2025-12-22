@@ -1,15 +1,10 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
-import { PlaygroundController } from '../components/playground/PlaygroundController';
-import { createPlaygroundServices, getBrowserTier, getBrowserCompatibilityMessage, isFileSystemAccessSupported } from '../lib/playground/setup';
+import PlaygroundWrapper from '../components/playground/PlaygroundWrapper';
+import { getBrowserCompatibilityMessage } from '../lib/playground/setup';
 
-// Create production service instances
-// Note: In development, you can use getDevConfig() instead of default
-const { transpiler, fileSystem } = createPlaygroundServices();
-
-// Get browser compatibility information (will be checked client-side in practice)
-const browserTier = typeof window !== 'undefined' ? getBrowserTier() : 3;
-const compatibilityMessage = getBrowserCompatibilityMessage(browserTier);
+// Get browser compatibility information for SSR (will be updated client-side)
+const compatibilityMessage = getBrowserCompatibilityMessage(3); // Default to tier 3 for SSR
 ---
 
 <MainLayout
@@ -32,11 +27,7 @@ const compatibilityMessage = getBrowserCompatibilityMessage(browserTier);
     </div>
 
     <!-- Playground Controller Component -->
-    <PlaygroundController
-      transpiler={transpiler}
-      fileSystem={fileSystem}
-      client:only="react"
-    />
+    <PlaygroundWrapper client:only="react" />
 
     <!-- Usage Instructions -->
     <div class="instructions-section">
