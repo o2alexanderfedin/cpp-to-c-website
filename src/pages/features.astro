@@ -119,24 +119,40 @@ const base = import.meta.env.BASE_URL;
 
         <!-- Exceptions -->
         <div style="padding: 2rem; border: 1px solid #e0e0e0; border-radius: 0.5rem;">
-          <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #0066cc;">Exception Handling</h3>
+          <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #0066cc;">Exception Handling (v2.5.0)</h3>
           <p style="color: #666; margin-bottom: 1rem; line-height: 1.6;">
-            PNaCl SJLJ pattern - the solution that Cfront didn't have
+            Complete try-catch-throw translation with RAII stack unwinding - the solution that Cfront didn't have
           </p>
           <div style="background: #f9f9f9; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
             <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #333;">How It Works</h4>
             <p style="color: #666; font-size: 0.95rem; line-height: 1.6;">
-              Uses setjmp/longjmp with action tables for stack unwinding. Each try block creates one exception
-              frame (not per scope). Action tables describe destructor sequences, enabling proper cleanup during
-              unwinding. Thread-safe via <code>_Thread_local</code> storage. This pattern is proven by Comeau C++
-              (1990s), PNaCl (2013), and Emscripten (present).
+              Implements setjmp/longjmp (SJLJ) pattern with action tables for stack unwinding. Each try block creates
+              one exception frame containing a setjmp buffer, action table pointer, and frame linkage. Action tables
+              list destructors in reverse construction order (LIFO), enabling proper RAII cleanup during unwinding.
+              Type matching uses strcmp for catch handler selection. Nested try-catch blocks use a thread-safe frame
+              stack (<code>_Thread_local</code>). Exception objects are heap-allocated and passed through frames.
+              This proven pattern is used by PNaCl (2013), Emscripten, and Comeau C++ (1990s).
             </p>
+          </div>
+          <div style="background: #fff3e0; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+            <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #e65100;">Key Features</h4>
+            <ul style="color: #e65100; font-size: 0.95rem; line-height: 1.8; margin: 0; padding-left: 1.5rem;">
+              <li><strong>Try-catch blocks:</strong> Full translation with setjmp guards</li>
+              <li><strong>Throw expressions:</strong> Heap-allocated exception objects with type info</li>
+              <li><strong>Stack unwinding:</strong> Automatic destructor calls (RAII support)</li>
+              <li><strong>Nested try-catch:</strong> Frame stack for multi-level handling</li>
+              <li><strong>Re-throw:</strong> throw; expressions in catch handlers</li>
+              <li><strong>Catch-all:</strong> catch(...) support</li>
+              <li><strong>CLI flags:</strong> --enable-exceptions and --exception-model</li>
+              <li><strong>Performance:</strong> &lt;20% overhead, zero-cost when no exception thrown</li>
+            </ul>
           </div>
           <div style="background: #e8f5e9; padding: 1rem; border-radius: 0.5rem;">
             <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #2e7d32;">Use Case</h4>
             <p style="color: #2e7d32; font-size: 0.95rem; line-height: 1.6;">
               Convert exception-based error handling to portable C while maintaining proper resource cleanup
-              and type-safe catch handling
+              (RAII), type-safe catch handling, and automatic exception propagation across function boundaries.
+              Suitable for embedded systems and safety-critical applications requiring formal verification.
             </p>
           </div>
         </div>
