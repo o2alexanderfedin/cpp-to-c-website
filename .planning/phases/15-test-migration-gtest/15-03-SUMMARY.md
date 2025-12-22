@@ -362,3 +362,110 @@ Phase 15-03 achieved **100% COMPLETE (84/84 tests)** with ALL 7 test files fully
 **Date**: 2025-12-21 (Initial) / 2025-12-21 (Final Completion)
 **Next Phase**: Phase 15-04 - Unified Test Execution & Code Coverage
 
+---
+
+## UPDATE (2025-12-21 Evening): Additional Inline-Style Tests Found
+
+### Scope Clarification
+
+After the initial Phase 15-03 completion (84 tests migrated), a comprehensive scan of the codebase revealed **18 additional files with inline-style assertion patterns** still present:
+
+#### Files Still Using Inline Style (18 files, ~177 additional tests estimated)
+
+**Exception & RAII Tests (9 files)**:
+1. `LoopDestructorTest.cpp` - 26 tests (Loop break/continue handling)
+2. `ExceptionPerformanceTest.cpp` - 4 tests (Performance benchmarks)
+3. `ExceptionHandlingIntegrationTest.cpp` - 28 tests (Integration tests)
+4. `ExceptionRuntimeTest.cpp` - 12 tests (Runtime behavior)
+5. `ExceptionIntegrationTest.cpp` - 10 tests (Integration scenarios)
+6. `FunctionExitDestructorTest.cpp` - 24 tests (Function exit cleanup)
+7. `GotoDestructorTest.cpp` - 48 tests (Goto handling)
+8. `ExceptionThreadSafetyTest.cpp` - 5 tests (Thread safety)
+9. `ExceptionFrameTest.cpp` - 16 tests (Frame management)
+
+**Destructor & RAII Tests (2 files)**:
+10. `NestedScopeDestructorTest.cpp` - 8 tests (Nested scope handling)
+11. `EarlyReturnDestructorTest.cpp` - 16 tests (Early return cleanup)
+
+**Integration & Infrastructure Tests (7 files)**:
+12. `RAIIIntegrationTest.cpp` - 25 tests (RAII integration)
+13. `MonomorphizationTest.cpp` - 13 tests (Template monomorphization)
+14. `ActionTableGeneratorTest.cpp` - 18 tests (Parser infrastructure)
+15. `CFGAnalysisTest.cpp` - 5 tests (Control flow graph)
+16. `test_cnodebuilder_manual.cpp` - Manual testing infrastructure
+17. `unit/smart_pointers/SharedPtrTest_old.cpp` - Legacy (duplicate)
+18. `unit/smart_pointers/RaiiIntegrationTest_old.cpp` - Legacy (duplicate)
+
+**Estimated Additional Tests**: ~261 tests (excluding duplicates and manual test infrastructure)
+
+### Actions Taken (2025-12-21 Evening Session)
+
+1. ✅ **Identified Duplicate ACSL Tests**:
+   - Found 4 ACSL test files with inline style that already have GTest versions
+   - Removed duplicate files:
+     - `tests/ACSLClassAnnotatorTest.cpp` (10 tests)
+     - `tests/ACSLBehaviorAnnotatorTest.cpp` (15 tests)
+     - `tests/ACSLGhostCodeInjectorTest.cpp` (10 tests)
+     - `tests/ACSLTypeInvariantGeneratorTest.cpp` (12 tests)
+   - Total duplicates removed: 47 tests
+
+2. ✅ **Comprehensive Scope Analysis**:
+   - Scanned entire `tests/` directory for inline assertion patterns
+   - Found 18 files still using inline style (down from 22 after removing duplicates)
+   - Categorized by feature area (Exception/RAII, Integration, Infrastructure)
+   - Estimated ~261 additional tests need migration
+
+3. ✅ **Created Migration Tool**:
+   - Python script: `website/.tmp/migrate_inline_to_gtest.py`
+   - Automates conversion of inline-style to GTest format
+   - Tested on LoopDestructorTest.cpp with partial success
+   - Manual cleanup still required for complex tests
+
+### Updated Phase 15-03 Scope
+
+| Scope | Original Estimate | Initial Completion | Additional Found | Total Scope |
+|-------|-------------------|--------------------|------------------|-------------|
+| **Test Files** | 7 | 7 (100%) | 18 | 25 files |
+| **Tests** | 84 | 84 (100%) | ~261 | ~345 tests |
+| **Status** | Planned | ✅ COMPLETE | PENDING | 24% Complete |
+
+### Revised Success Criteria
+
+**Original Phase 15-03 Success Criteria** - ACHIEVED ✅:
+- ✅ All 84 inline-style tests migrated to GTest (100%)
+- ✅ All tests build successfully
+- ✅ 100% pass rate for migrated tests
+
+**Extended Phase 15-03 Success Criteria** - IN PROGRESS:
+- ✅ Initial 84 tests migrated (100%)
+- ⏳ Additional 261 tests pending migration (0%)
+- ⏳ Remove 18 inline-style test files
+- ⏳ Verify 100% pass rate for all ~345 tests
+- ⏳ All tests integrated with CTest
+- ⏳ Zero inline assertion patterns remaining
+
+### Recommendation
+
+Given the significant additional scope discovered (261 tests in 18 files), recommend:
+
+**Option 1: Complete Extended Phase 15-03 (Recommended)**
+- Migrate remaining 18 inline-style test files
+- Estimated effort: 20-25 hours
+- Result: 100% inline-style test migration complete
+- Prerequisite for Phase 15-04 completion
+
+**Option 2: Document as Known Technical Debt**
+- Accept current state (84/345 tests migrated = 24%)
+- Document remaining 18 files as technical debt
+- Proceed to Phase 15-04 with partial completion
+- Risk: Technical debt accumulation
+
+**Decision**: Proceed with Option 1 (complete migration) to achieve true 100% test framework standardization.
+
+---
+
+**Update Prepared by**: Claude Sonnet 4.5
+**Update Date**: 2025-12-21 Evening
+**Revised Status**: IN PROGRESS (24% complete - 84/345 tests)
+**Remaining Work**: 18 files, ~261 tests
+
