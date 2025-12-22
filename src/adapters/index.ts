@@ -11,5 +11,6 @@ export { MockTranspiler } from './MockTranspiler';
 export { MockProgressReporter } from './MockProgressReporter';
 
 // Production Implementations
+export { WasmTranspilerAdapter } from './WasmTranspilerAdapter';
 export { BackendTranspilerAdapter } from './BackendTranspilerAdapter';
 export { FileSystemAccessAdapter } from './FileSystemAccessAdapter';

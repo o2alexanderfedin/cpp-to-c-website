@@ -10,6 +10,7 @@
  * - Open/Closed: New services can be added without modifying existing code
  */
 
+import { WasmTranspilerAdapter } from '../../adapters/WasmTranspilerAdapter';
 import { BackendTranspilerAdapter } from '../../adapters/BackendTranspilerAdapter';
 import { FileSystemAccessAdapter } from '../../adapters/FileSystemAccessAdapter';
 import { MockFileSystem } from '../../adapters/MockFileSystem';
@@ -38,14 +39,15 @@ export interface PlaygroundConfig {
  * Create transpiler service instance
  *
  * @param config - Playground configuration
- * @returns Transpiler implementation (backend or mock)
+ * @returns Transpiler implementation (WASM, backend, or mock)
  */
 export function createTranspiler(config: PlaygroundConfig): ITranspiler {
   if (config.useMocks) {
     return new MockTranspiler();
   }
 
-  return new BackendTranspilerAdapter(config.apiUrl);
+  // Use WASM transpiler for browser-based transpilation
+  return new WasmTranspilerAdapter();
 }
 
 /**
