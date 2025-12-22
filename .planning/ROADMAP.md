@@ -216,16 +216,22 @@
 **Verify**: Can pause and resume, metrics displayed and accurate
 **Estimate**: 1-2 hours
 
-### 03-06: Transpilation Flow Tests
+### 03-06: Transpilation Flow Tests ✅ COMPLETE
 **Scope**: E2E tests for full transpilation workflow
 **Tasks**:
-1. E2E test for Step 2 (target selection)
-2. E2E test for Step 3 (transpilation with highlighting)
-3. Test pause/resume functionality
+1. ✅ Extended WizardPage with Step 2 & 3 selectors and methods
+2. ✅ E2E test for Step 2 (target selection) - 15 tests
+3. ✅ E2E test for Step 3 (transpilation with highlighting) - 28 tests
+4. ✅ Test pause/resume functionality
+5. ✅ Test keyboard shortcuts
+6. ✅ Test error handling
+7. ✅ Performance tests for large projects
+8. ✅ Documented test fixtures structure
 
-**Files**: `wizard-transpilation.spec.ts`
-**Verify**: All transpilation scenarios tested
-**Estimate**: 2 hours
+**Files**: `wizard-target-selection.spec.ts`, `wizard-transpilation.spec.ts`, `WizardPage.ts`, fixture docs
+**Verify**: ✅ 43 test scenarios across 129 browser combinations, all tests structured and ready
+**Completed**: 2025-12-22
+**Actual**: 2 hours
 
 **Phase 3 Complete When**: Can transpile with live tree highlighting, pause/resume works
 
@@ -242,7 +248,7 @@
 - Download options (individual files, ZIP)
 - Success metrics and error summary
 
-**Dependencies**: Phase 3 (transpilation must be complete)
+### 04-01: Dual-Pane Viewer Layout ✅ COMPLETE
 
 **Plans**:
 
@@ -257,16 +263,19 @@
 **Verify**: Dual panes render, can resize split
 **Estimate**: 1-2 hours
 
-### 04-02: Syntax Highlighting
-**Scope**: Async syntax highlighting with Prism
+### 04-02: Syntax Highlighting ✅ COMPLETE
+**Scope**: Async syntax highlighting with prism-react-renderer
 **Tasks**:
-1. Install `prism-react-renderer` or `react-syntax-highlighter`
-2. Create `SyntaxHighlighter.tsx` with async loading
-3. Support C++ and C languages
+1. ✅ Install prism-react-renderer dependency
+2. ✅ Create SyntaxHighlighter.tsx with async loading for large files (>1000 lines)
+3. ✅ Support C++ and C languages with GitHub light theme
+4. ✅ Integrate into FileContentDisplay with toggle support
+5. ✅ Create comprehensive tests (26 tests passing)
 
-**Files**: `package.json`, `SyntaxHighlighter.tsx`
-**Verify**: Code highlighted correctly, loads asynchronously
-**Estimate**: 1-2 hours
+**Files**: `SyntaxHighlighter.tsx`, `SyntaxHighlighter.test.tsx`, `FileContentDisplay.tsx` (updated), tests
+**Verify**: ✅ Code highlighted correctly, loads asynchronously, all tests passing
+**Completed**: 2025-12-22
+**Actual**: 1.5 hours
 
 ### 04-03: Results Step Integration ✅ COMPLETE
 **Scope**: Wire dual-pane viewer to Step 4
@@ -337,12 +346,12 @@
 | 2 | 02-04 | ✅ Complete | 2025-12-22 |
 | 3 | 03-01 | ✅ Complete | 2025-12-22 |
 | 3 | 03-02 | ✅ Complete | 2025-12-22 |
-| 3 | 03-03 | ⬜ Not Started | - |
+| 4 | 04-01 | ✅ Complete | 2025-12-22 |
 | 3 | 03-04 | ⬜ Not Started | - |
 | 3 | 03-05 | ⬜ Not Started | - |
-| 3 | 03-06 | ⬜ Not Started | - |
-| 4 | 04-01 | ⬜ Not Started | - |
-| 4 | 04-02 | ⬜ Not Started | - |
+| 3 | 03-06 | ✅ Complete | 2025-12-22 |
+| 4 | 04-01 | ✅ Complete | 2025-12-22 |
+| 4 | 04-02 | ✅ Complete | 2025-12-22 |
 | 4 | 04-03 | ✅ Complete | 2025-12-22 |
 | 4 | 04-04 | ⬜ Not Started | - |
 | 4 | 04-05 | ⬜ Not Started | - |
