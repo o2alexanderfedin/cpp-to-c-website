@@ -83,8 +83,9 @@ export const PlaygroundController: React.FC<PlaygroundControllerProps> = ({
                 setCurrentFile(file.name);
 
                 try {
-                    // Read file
-                    const content = await fileSystem.readFile(file.path);
+                    // Read file directly from handle (FileSystemAccessAdapter's readFile requires pre-cached paths)
+                    const fileData = await file.handle.getFile();
+                    const content = await fileData.text();
 
                     // Transpile
                     const result = await transpiler.transpile(content, {
