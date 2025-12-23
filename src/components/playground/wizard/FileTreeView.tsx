@@ -155,7 +155,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
           border: 1px solid #ddd;
           border-radius: 4px;
           background-color: #fff;
-          overflow: hidden;
+          overflow: auto;
         }
 
         .tree-node {
@@ -216,8 +216,6 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
         .tree-name {
           font-size: 0.9rem;
           color: #333;
-          overflow: hidden;
-          text-overflow: ellipsis;
           white-space: nowrap;
         }
 
