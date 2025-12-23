@@ -2,20 +2,22 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { WizardStepper } from './WizardStepper';
 import { FileTreeView, FileStatus } from './FileTreeView';
 import { useTranspilation } from './hooks/useTranspilation';
-import type { WizardState } from './types';
+import type { WizardState, TranspileResult } from './types';
 
 interface Step3Props {
   state: WizardState;
   onStartTranspilation: () => void;
   onPauseTranspilation: () => void;
   onCancelTranspilation: () => void;
+  onFileCompleted: (filePath: string, result: TranspileResult) => void;
 }
 
 export const Step3Transpilation: React.FC<Step3Props> = ({
   state,
   onStartTranspilation,
   onPauseTranspilation,
-  onCancelTranspilation
+  onCancelTranspilation,
+  onFileCompleted
 }) => {
   const [currentFile, setCurrentFile] = useState<string | null>(null);
   const [fileStatuses, setFileStatuses] = useState<Map<string, FileStatus>>(new Map());
@@ -55,6 +57,8 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
         updated.set(filePath, result.success ? FileStatus.SUCCESS : FileStatus.ERROR);
         return updated;
       });
+      // Save result to wizard state for Step 4
+      onFileCompleted(filePath, result);
     },
     onFileError: (filePath, errorMsg) => {
       setFileStatuses(prev => {

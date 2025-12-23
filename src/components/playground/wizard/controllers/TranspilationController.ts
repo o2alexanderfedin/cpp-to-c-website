@@ -173,8 +173,21 @@ export class TranspilationController {
 
           // Write result to target directory if successful
           if (result.success && result.cCode) {
-            const targetFileName = convertToTargetFileName(file.name);
-            const targetFileHandle = await targetDir.getFileHandle(targetFileName, { create: true });
+            // Parse directory path from file.path to preserve structure
+            const pathParts = file.path.split('/');
+            const fileName = pathParts.pop()!; // Remove filename, keep directories
+
+            // Create nested directories if needed
+            let currentDir = targetDir;
+            for (const dirName of pathParts) {
+              if (dirName) { // Skip empty parts
+                currentDir = await currentDir.getDirectoryHandle(dirName, { create: true });
+              }
+            }
+
+            // Create file in the correct directory with converted extension
+            const targetFileName = convertToTargetFileName(fileName);
+            const targetFileHandle = await currentDir.getFileHandle(targetFileName, { create: true });
             const writable = await targetFileHandle.createWritable();
             await writable.write(result.cCode);
             await writable.close();

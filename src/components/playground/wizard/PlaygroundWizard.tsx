@@ -26,6 +26,7 @@ export const PlaygroundWizard: React.FC = () => {
           onStartTranspilation={handlers.startTranspilation}
           onPauseTranspilation={handlers.stopTranspilation}
           onCancelTranspilation={handlers.stopTranspilation}
+          onFileCompleted={handlers.addTranspilationResult}
         />
         <Step4Results
           state={state}

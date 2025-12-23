@@ -87,8 +87,15 @@ export class WasmTranspilerAdapter implements ITranspiler {
             }
           });
 
+          // Check if Transpiler class exists
+          if (!this.module.Transpiler) {
+            console.error('WASM module structure:', Object.keys(this.module));
+            throw new Error('WASM module does not export Transpiler class');
+          }
+
           // Create transpiler instance
           this.transpilerInstance = new this.module.Transpiler();
+          console.log('✅ WASM Transpiler initialized successfully');
         } finally {
           // Clean up blob URL
           URL.revokeObjectURL(blobUrl);
@@ -137,14 +144,30 @@ export class WasmTranspilerAdapter implements ITranspiler {
       // Call WASM transpiler
       const wasmResult = this.transpilerInstance.transpile(source, wasmOptions);
 
+      // Debug: Log WASM result structure
+      console.log('WASM transpile result:', {
+        success: wasmResult.success,
+        hasC: !!wasmResult.c,
+        hasCCode: !!wasmResult.cCode,
+        cLength: wasmResult.c?.length || wasmResult.cCode?.length || 0,
+        keys: Object.keys(wasmResult)
+      });
+
       // Map WASM result to website result
       const diagnostics = Array.isArray(wasmResult.diagnostics)
         ? wasmResult.diagnostics.map((d: any) => this.formatDiagnostic(d))
         : [];
 
+      // Try both .c and .cCode properties (WASM may use either)
+      const cCode = wasmResult.c || wasmResult.cCode || wasmResult.output;
+
+      if (!cCode && wasmResult.success) {
+        console.warn('⚠️  WASM returned success but no C code. Result:', wasmResult);
+      }
+
       return {
         success: wasmResult.success,
-        cCode: wasmResult.c,
+        cCode,
         error: wasmResult.success
           ? undefined
           : this.formatDiagnosticsAsError(wasmResult.diagnostics),
