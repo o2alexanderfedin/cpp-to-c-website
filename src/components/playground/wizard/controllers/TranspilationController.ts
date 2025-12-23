@@ -312,7 +312,8 @@ export class TranspilationController {
           current: this.completedFiles,
           total: sourceFiles.length,
           percentage: (this.completedFiles / sourceFiles.length) * 100
-        }
+        },
+        metrics: this.getCurrentMetrics()
       });
     });
 
