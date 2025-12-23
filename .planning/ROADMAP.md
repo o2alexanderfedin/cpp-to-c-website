@@ -11,7 +11,15 @@
 
 **Target**: Complete wizard-style playground with tree views and live progress
 
-**Scope**: 4 phases, 18 atomic plans
+**Scope**: 4 phases, 18 atomic plans ✅ COMPLETE
+
+---
+
+## Milestone: v1.1 - Parallel Transpilation Performance
+
+**Target**: Multi-threaded transpilation with web workers for massive performance gains
+
+**Scope**: 1 phase (Phase 5), 3 atomic plans
 
 ---
 
@@ -337,19 +345,72 @@
 **Completed**: 2025-12-22
 **Actual**: 2 hours
 
-**Phase 4 Complete When**: Complete wizard functional, all tests pass, ready to ship
+**Phase 4 Status**: ✅ COMPLETE - Full wizard with dual-pane viewer and download options
+
+---
+
+## Phase 5: Parallel Transpilation with Web Workers
+
+**Goal**: Enable parallel transpilation using web workers for massive performance improvements and non-blocking UI
+
+**Deliverables**:
+- Web worker wrapper for WASM transpiler
+- Worker pool controller with dynamic task assignment
+- Parallel execution of N files on N CPU cores
+- Non-blocking UI (transpilation runs off main thread)
+- Graceful fallback to sequential mode if workers unavailable
+- Performance improvements (2-8× faster on multi-core systems)
+
+**Dependencies**: Phase 4 (wizard interface must exist)
+
+**Plans**:
+
+### 05-01: Web Worker Transpiler
+**Scope**: Create worker wrapper for WASM transpiler
+**Tasks**:
+1. Create worker message protocol types (request/response)
+2. Implement transpiler worker with WASM loading
+3. Add worker lifecycle tests (init, transpile, dispose, error handling)
+
+**Files**: `src/workers/transpiler.worker.ts`, `src/workers/types.ts`, tests
+**Verify**: Worker loads WASM, transpiles files, emits progress, handles errors
+**Estimate**: 2-3 hours
+
+### 05-02: Worker Pool Controller
+**Scope**: Implement worker pool with dynamic task assignment
+**Tasks**:
+1. Create worker pool controller with optimal worker count detection
+2. Add progress aggregation (per-file and overall)
+3. Add worker pool tests (parallel execution, error recovery, cancellation)
+
+**Files**: `src/workers/WorkerPoolController.ts`, tests
+**Verify**: Pool manages workers, distributes tasks, aggregates progress, recovers from errors
+**Estimate**: 2-3 hours
+
+### 05-03: Integrate Worker Pool into UI
+**Scope**: Replace sequential controller with parallel worker pool
+**Tasks**:
+1. Update TranspilationController to use worker pool with graceful fallback
+2. Update tests for both parallel and sequential modes
+3. Add execution mode indicator to UI (parallel vs sequential)
+
+**Files**: `TranspilationController.ts`, `Step3Transpilation.tsx`, tests
+**Verify**: UI uses parallel execution, falls back gracefully, performance improved 2-8×
+**Estimate**: 2-3 hours
+
+**Phase 5 Complete When**: Parallel transpilation works, UI stays responsive, performance significantly improved
 
 ---
 
 ## Post-Launch (Future Phases - Out of Current Scope)
 
-**Phase 5: Enhanced Features** (v1.1)
+**Phase 6: Enhanced Features** (v1.1)
 - Diff view between source and transpiled (side-by-side or inline)
 - Dark mode support
 - Advanced tree features (rename, delete files in results)
 - Export configuration (remember settings)
 
-**Phase 6: Performance & Polish** (v1.2)
+**Phase 7: Performance & Polish** (v1.2)
 - Web Worker for syntax highlighting (if needed)
 - Progressive loading for very large projects (>5000 files)
 - Advanced filtering (by file type, errors only, etc.)
@@ -379,6 +440,9 @@
 | 4 | 04-03 | ✅ Complete | 2025-12-22 |
 | 4 | 04-04 | ✅ Complete | 2025-12-22 |
 | 4 | 04-05 | ✅ Complete | 2025-12-22 |
+| 5 | 05-01 | ⬜ Not Started | - |
+| 5 | 05-02 | ⬜ Not Started | - |
+| 5 | 05-03 | ⬜ Not Started | - |
 
 **Legend**: ⬜ Not Started | 🔄 In Progress | ✅ Complete | ⚠️ Blocked
 
@@ -388,13 +452,16 @@
 
 | Risk | Phase | Mitigation Status |
 |------|-------|-------------------|
-| Tree view performance | 2 | ✅ Planned: react-window virtualization in 02-02 |
-| Syntax highlighting blocks UI | 4 | ✅ Planned: Async loading in 04-02 |
-| File System API permissions | 3 | ✅ Planned: Permission checking in 03-01 |
-| State management complexity | 1 | ✅ Planned: Simple hooks in 01-02 |
+| Tree view performance | 2 | ✅ Mitigated: react-arborist virtualization (28ms for 2000 files) |
+| Syntax highlighting blocks UI | 4 | ✅ Mitigated: Async loading with prism-react-renderer |
+| File System API permissions | 3 | ✅ Mitigated: Permission checking and conflict detection |
+| State management complexity | 1 | ✅ Mitigated: Simple React hooks, no external libraries |
+| Worker WASM loading overhead | 5 | ✅ Planned: Pre-warm pool, amortize cost across all files |
+| Browser compatibility (workers) | 5 | ✅ Planned: Graceful fallback to sequential mode |
+| Worker crash recovery | 5 | ✅ Planned: Auto-recovery with task retry (max 3 attempts) |
 
 ---
 
 **Created**: 2025-12-22
 **Last Updated**: 2025-12-22
-**Next Action**: Execute Phase 2, Plan 02-04 (Tree View Tests) or 02-02 (Tree Virtualization)
+**Next Action**: Execute Phase 5, Plan 05-01 (Web Worker Transpiler)
