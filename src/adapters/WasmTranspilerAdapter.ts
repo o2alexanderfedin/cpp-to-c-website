@@ -55,9 +55,13 @@ export class WasmTranspilerAdapter implements ITranspiler {
       try {
         // Load the WASM module from public directory
         // The files are in public/wasm/ which maps to /cpp-to-c-website/wasm/ with base path
-        // Use Vite's BASE_URL which works in all contexts (main thread, workers, etc.)
-        const baseUrl = import.meta.env.BASE_URL || '/';
-        const wasmJsPath = `${baseUrl}wasm/cpptoc.js`;
+        //
+        // CRITICAL: import.meta.env.BASE_URL does NOT work in Web Worker context!
+        // In workers, import.meta.env is undefined, causing 404 errors.
+        // Solution: Use self.location.origin + hard-coded path for universal compatibility
+        // This works in both main thread (window context) and Web Workers
+        const origin = typeof self !== 'undefined' ? self.location.origin : '';
+        const wasmJsPath = `${origin}/cpp-to-c-website/wasm/cpptoc.js`;
 
         // Dynamically import the Emscripten module as an ES module
         // We need to create a blob URL to import it
@@ -81,7 +85,7 @@ export class WasmTranspilerAdapter implements ITranspiler {
           this.module = await createCppToC({
             locateFile: (path: string) => {
               // WASM file is in same directory as JS file
-              return `${baseUrl}wasm/${path}`;
+              return `${origin}/cpp-to-c-website/wasm/${path}`;
             }
           });
 
