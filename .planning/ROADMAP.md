@@ -578,6 +578,43 @@
 
 ---
 
+## Phase 23: Bugfix - Tree View and File Preview Scroll Behavior
+
+**Goal**: Enable horizontal scrolling in tree view and fix text truncation for long file paths
+
+**User Request**: "Tree view should be scrollable not just up/down, but also left/right. File preview should also be scrollable."
+
+### Plans
+
+#### 23-01: Fix Scroll Behavior in Results Page ⬜ PLANNED
+**Type**: Bugfix
+**Est**: 30 minutes
+**Files**: `FileTreeView.tsx`
+
+**Tasks**:
+1. Fix FileTreeView horizontal scrolling (overflow: hidden → auto)
+2. Remove tree node text truncation (remove ellipsis)
+3. Verify file preview scrolling (already correct)
+4. Browser testing with deep folder structures
+5. Commit changes
+
+**Success**: Tree view scrolls horizontally for long paths, file preview scrolls both axes
+
+**Root Causes**:
+- FileTreeView container: `overflow: hidden` blocks scrollbars
+- Tree node text: `text-overflow: ellipsis` truncates with `...`
+
+**Impact**:
+- Users see full file paths (no truncation)
+- Horizontal scroll for deeply nested structures
+- Better UX for large projects
+
+**Status**: ⬜ PLANNED
+
+**Phase 23 Status**: ⬜ PLANNED (0/1 plans - 0%)
+
+---
+
 ## Post-Launch (Future Phases - Out of Current Scope)
 
 **Phase 6: Enhanced Features** (v1.1)
@@ -654,6 +691,6 @@
 
 **Created**: 2025-12-22
 **Last Updated**: 2025-12-22
-**Status**: ⚙️ **IN PROGRESS** (37/38 plans - 97%)
-**Latest**: Phase 22-01 complete - Tab-based code viewer
-**All Phases**: Phase 21 planned (auto-scroll fix), Phase 22 complete (tabbed viewer)
+**Status**: ⚙️ **IN PROGRESS** (37/39 plans - 95%)
+**Latest**: Phase 23-01 planned - Tree view and file preview scroll fixes
+**All Phases**: Phases 21,23 planned (auto-scroll, scroll behavior), Phase 22 complete (tabbed viewer)
