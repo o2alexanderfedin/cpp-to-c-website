@@ -617,6 +617,45 @@
 
 ---
 
+## Phase 24: Bugfix - File Preview Panel Does Not Scroll
+
+**Goal**: Enable scrolling in file preview panel for viewing complete file content
+
+**User Request**: "The file preview panel does not scroll"
+
+### Plans
+
+#### 24-01: Fix File Preview Panel Scroll Behavior ⬜ PLANNED
+**Type**: Bugfix
+**Est**: 20 minutes
+**Files**: `Step4Results.tsx`
+
+**Tasks**:
+1. Add height:100% to .results-viewer CSS
+2. Verify scroll chain works correctly
+3. Browser testing with long files
+4. Commit changes
+
+**Success**: File preview scrolls vertically and horizontally for all content
+
+**Root Cause**:
+- .results-viewer missing height constraint
+- Flex container grows beyond grid cell (500px)
+- TabbedCodeViewer can't establish scroll context
+- No scrollbar appears
+
+**Impact**:
+- Users can scroll to see all file content
+- Long files (>30 lines) fully viewable
+- Wide lines visible via horizontal scroll
+- Simple one-line CSS fix
+
+**Status**: ⬜ PLANNED
+
+**Phase 24 Status**: ⬜ PLANNED (0/1 plans - 0%)
+
+---
+
 ## Post-Launch (Future Phases - Out of Current Scope)
 
 **Phase 6: Enhanced Features** (v1.1)
@@ -694,6 +733,6 @@
 
 **Created**: 2025-12-22
 **Last Updated**: 2025-12-22
-**Status**: ⚙️ **IN PROGRESS** (38/39 plans - 97%)
-**Latest**: Phase 23-01 complete - Tree view and file preview scroll fixes
-**All Phases**: Phase 21 planned (auto-scroll), Phases 22,23 complete (tabbed viewer, scroll behavior)
+**Status**: ⚙️ **IN PROGRESS** (38/40 plans - 95%)
+**Latest**: Phase 24-01 planned - File preview panel scroll fix
+**All Phases**: Phases 21,24 planned (auto-scroll, file preview scroll), Phases 22,23 complete (tabbed viewer, tree scroll)
