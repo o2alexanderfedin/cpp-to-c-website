@@ -197,15 +197,18 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
 
       const elapsedMs = Math.max(0, activeTime);
 
-      // Speed = completedCount / elapsedMs (same data source as progress bar)
+      // Calculate speed and time per file
       const filesPerSecond = (completedCount > 0 && elapsedMs > 0)
         ? (completedCount / elapsedMs) * 1000
         : 0;
 
-      const remainingFiles = state.sourceFiles.length - completedCount;
-      const estimatedRemainingMs = (filesPerSecond > 0 && remainingFiles > 0)
-        ? (remainingFiles / filesPerSecond) * 1000
+      const timePerFile = (completedCount > 0 && elapsedMs > 0)
+        ? elapsedMs / completedCount
         : 0;
+
+      // Remaining = (total - completed) * timePerFile
+      const remainingFiles = state.sourceFiles.length - completedCount;
+      const estimatedRemainingMs = remainingFiles * timePerFile;
 
       setMetrics({
         elapsedMs,
