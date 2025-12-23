@@ -21,6 +21,8 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
 }) => {
   const [currentFile, setCurrentFile] = useState<string | null>(null);
   const [fileStatuses, setFileStatuses] = useState<Map<string, FileStatus>>(new Map());
+  const [fileErrors, setFileErrors] = useState<Map<string, string>>(new Map());
+  const [showErrorDetails, setShowErrorDetails] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0, percentage: 0 });
   const [metrics, setMetrics] = useState({
     elapsedMs: 0,
@@ -65,6 +67,11 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
       setFileStatuses(prev => {
         const updated = new Map(prev);
         updated.set(filePath, FileStatus.ERROR);
+        return updated;
+      });
+      setFileErrors(prev => {
+        const updated = new Map(prev);
+        updated.set(filePath, errorMsg);
         return updated;
       });
       console.error(`Error transpiling ${filePath}:`, errorMsg);
@@ -233,6 +240,34 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
                 </div>
               )}
             </div>
+
+            {/* Error Details (Collapsible) */}
+            {errorCount > 0 && (
+              <div className="error-details-section">
+                <button
+                  className="error-details-toggle"
+                  onClick={() => setShowErrorDetails(!showErrorDetails)}
+                  aria-expanded={showErrorDetails}
+                  aria-controls="error-details-list"
+                >
+                  {showErrorDetails ? '▼' : '▶'} {errorCount === 1 ? 'Show Error Detail' : `Show ${errorCount} Error Details`}
+                </button>
+
+                {showErrorDetails && (
+                  <div className="error-details-list" id="error-details-list">
+                    {Array.from(fileErrors.entries()).map(([filePath, errorMsg]) => (
+                      <div key={filePath} className="error-detail-item">
+                        <div className="error-file-path">
+                          <span className="error-icon">✗</span>
+                          <code>{filePath}</code>
+                        </div>
+                        <div className="error-message-text">{errorMsg}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Metrics */}
             <div className="metrics">
@@ -673,6 +708,83 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
           color: #721c24;
           border: 1px solid #f5c6cb;
           border-radius: 4px;
+        }
+
+        .error-details-section {
+          border: 1px solid #f5c6cb;
+          border-radius: 4px;
+          background-color: #fff;
+          overflow: hidden;
+        }
+
+        .error-details-toggle {
+          width: 100%;
+          padding: 0.75rem 1rem;
+          background-color: #f8d7da;
+          color: #721c24;
+          border: none;
+          text-align: left;
+          cursor: pointer;
+          font-size: 0.875rem;
+          font-weight: 500;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          transition: background-color 0.15s;
+        }
+
+        .error-details-toggle:hover {
+          background-color: #f5c6cb;
+        }
+
+        .error-details-toggle:focus-visible {
+          outline: 2px solid #721c24;
+          outline-offset: -2px;
+        }
+
+        .error-details-list {
+          max-height: 300px;
+          overflow-y: auto;
+          border-top: 1px solid #f5c6cb;
+        }
+
+        .error-detail-item {
+          padding: 0.75rem 1rem;
+          border-bottom: 1px solid #f5c6cb;
+        }
+
+        .error-detail-item:last-child {
+          border-bottom: none;
+        }
+
+        .error-file-path {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 0.5rem;
+          font-weight: 500;
+        }
+
+        .error-file-path .error-icon {
+          color: #dc3545;
+          font-size: 1rem;
+        }
+
+        .error-file-path code {
+          color: #333;
+          background-color: #f5f5f5;
+          padding: 0.125rem 0.375rem;
+          border-radius: 3px;
+          font-size: 0.875rem;
+        }
+
+        .error-message-text {
+          color: #721c24;
+          font-size: 0.875rem;
+          margin-left: 1.5rem;
+          line-height: 1.5;
+          white-space: pre-wrap;
+          word-break: break-word;
         }
       `}</style>
     </>
