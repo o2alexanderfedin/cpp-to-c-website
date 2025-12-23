@@ -133,11 +133,17 @@ export function useTranspilation(callbacks: UseTranspilationCallbacks) {
     return controllerRef.current?.isPausedState() ?? false;
   }, []);
 
+  // Get execution mode
+  const getExecutionMode = useCallback(() => {
+    return controllerRef.current?.getExecutionMode() ?? null;
+  }, []);
+
   return {
     start,
     pause,
     resume,
     cancel,
-    isPaused
+    isPaused,
+    getExecutionMode
   };
 }

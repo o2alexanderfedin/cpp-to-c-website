@@ -14,6 +14,7 @@ const mockPause = vi.fn();
 const mockResume = vi.fn();
 const mockCancel = vi.fn();
 const mockIsPaused = vi.fn().mockReturnValue(false);
+const mockGetExecutionMode = vi.fn().mockReturnValue('parallel');
 
 vi.mock('./hooks/useTranspilation', () => ({
   useTranspilation: vi.fn(() => ({
@@ -21,7 +22,8 @@ vi.mock('./hooks/useTranspilation', () => ({
     pause: mockPause,
     resume: mockResume,
     cancel: mockCancel,
-    isPaused: mockIsPaused
+    isPaused: mockIsPaused,
+    getExecutionMode: mockGetExecutionMode
   }))
 }));
 
@@ -44,7 +46,8 @@ describe('Step3Transpilation', () => {
   const mockCallbacks = {
     onStartTranspilation: vi.fn(),
     onPauseTranspilation: vi.fn(),
-    onCancelTranspilation: vi.fn()
+    onCancelTranspilation: vi.fn(),
+    onFileCompleted: vi.fn()
   };
 
   beforeEach(() => {

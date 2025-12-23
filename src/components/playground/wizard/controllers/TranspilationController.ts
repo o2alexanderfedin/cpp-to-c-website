@@ -1,4 +1,5 @@
 import { WasmTranspilerAdapter } from '../../../../adapters/WasmTranspilerAdapter';
+import { WorkerPoolController } from '../../../../workers/WorkerPoolController';
 import type { FileInfo, TranspileOptions, TranspileResult } from '../types';
 import { convertToTargetFileName } from '../utils/detectConflicts';
 
@@ -42,11 +43,22 @@ export interface TranspilationEvent {
 export type TranspilationEventListener = (event: TranspilationEvent) => void;
 
 /**
+ * Transpilation execution mode
+ */
+type ExecutionMode = 'parallel' | 'sequential';
+
+/**
  * Transpilation controller
- * Orchestrates sequential file transpilation with progress tracking
+ * Orchestrates file transpilation with automatic parallelization
+ *
+ * Architecture:
+ * - Parallel mode: Uses WorkerPoolController for multi-threaded execution
+ * - Sequential mode: Fallback to WasmTranspilerAdapter on main thread
+ * - Auto-detection: Tries parallel, falls back to sequential if workers unavailable
  */
 export class TranspilationController {
-  private transpiler: WasmTranspilerAdapter;
+  private workerPool: WorkerPoolController | null = null;
+  private fallbackAdapter: WasmTranspilerAdapter | null = null;
   private listeners: Set<TranspilationEventListener> = new Set();
   private abortController: AbortController | null = null;
   private isPaused: boolean = false;
@@ -54,9 +66,10 @@ export class TranspilationController {
   private completedFiles: number = 0;
   private pauseStartTime: number = 0;
   private totalPausedTime: number = 0;
+  private executionMode: ExecutionMode | null = null;
 
   constructor() {
-    this.transpiler = new WasmTranspilerAdapter();
+    // Mode will be determined on first transpilation
   }
 
   /**
@@ -81,6 +94,46 @@ export class TranspilationController {
   }
 
   /**
+   * Detect if web workers are supported
+   */
+  private supportsWorkers(): boolean {
+    try {
+      return typeof Worker !== 'undefined' && typeof navigator.hardwareConcurrency !== 'undefined';
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Initialize execution mode (parallel or sequential fallback)
+   */
+  private async initializeExecutionMode(): Promise<void> {
+    if (this.executionMode !== null) {
+      return; // Already initialized
+    }
+
+    // Try parallel mode first
+    if (this.supportsWorkers()) {
+      try {
+        this.workerPool = new WorkerPoolController();
+        await this.workerPool.initialize();
+        this.executionMode = 'parallel';
+        console.log('✅ Parallel transpilation enabled');
+        return;
+      } catch (error) {
+        console.warn('⚠️  Worker pool initialization failed, falling back to sequential mode:', error);
+        this.workerPool?.dispose();
+        this.workerPool = null;
+      }
+    }
+
+    // Fallback to sequential mode
+    this.fallbackAdapter = new WasmTranspilerAdapter();
+    this.executionMode = 'sequential';
+    console.log('ℹ️  Sequential transpilation mode (main thread)');
+  }
+
+  /**
    * Calculate current metrics (excluding pause time)
    */
   private calculateMetrics(current: number, total: number): TranspilationEvent['metrics'] {
@@ -99,156 +152,6 @@ export class TranspilationController {
       filesPerSecond,
       estimatedRemainingMs
     };
-  }
-
-  /**
-   * Start transpilation process
-   */
-  async transpile(
-    sourceFiles: FileInfo[],
-    targetDir: FileSystemDirectoryHandle,
-    options: TranspileOptions
-  ): Promise<void> {
-    // Reset state including pause tracking
-    this.abortController = new AbortController();
-    this.isPaused = false;
-    this.startTime = Date.now();
-    this.completedFiles = 0;
-    this.pauseStartTime = 0;
-    this.totalPausedTime = 0;
-
-    const total = sourceFiles.length;
-
-    // Emit started event
-    this.emit({
-      type: TranspilationEventType.STARTED,
-      progress: { current: 0, total, percentage: 0 },
-      metrics: { elapsedMs: 0, filesPerSecond: 0, estimatedRemainingMs: 0 }
-    });
-
-    try {
-      // Process each file sequentially
-      for (let i = 0; i < sourceFiles.length; i++) {
-        // Check for cancellation
-        if (this.abortController.signal.aborted) {
-          this.emit({
-            type: TranspilationEventType.CANCELLED,
-            progress: { current: i, total, percentage: (i / total) * 100 }
-          });
-          return;
-        }
-
-        // Wait if paused
-        while (this.isPaused && !this.abortController.signal.aborted) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-
-        const file = sourceFiles[i];
-        const current = i + 1;
-
-        // Emit file started event
-        this.emit({
-          type: TranspilationEventType.FILE_STARTED,
-          filePath: file.path,
-          fileName: file.name,
-          progress: {
-            current,
-            total,
-            percentage: (current / total) * 100
-          },
-          metrics: this.calculateMetrics(current - 1, total)
-        });
-
-        try {
-          // Read source file content
-          const fileHandle = file.handle;
-          const fileData = await fileHandle.getFile();
-          const sourceCode = await fileData.text();
-
-          // Transpile using WASM adapter
-          const result = await this.transpiler.transpile(sourceCode, {
-            ...options,
-            sourcePath: file.path
-          });
-
-          // Write result to target directory if successful
-          if (result.success && result.cCode) {
-            // Parse directory path from file.path to preserve structure
-            const pathParts = file.path.split('/');
-            const fileName = pathParts.pop()!; // Remove filename, keep directories
-
-            // Create nested directories if needed
-            let currentDir = targetDir;
-            for (const dirName of pathParts) {
-              if (dirName) { // Skip empty parts
-                currentDir = await currentDir.getDirectoryHandle(dirName, { create: true });
-              }
-            }
-
-            // Create file in the correct directory with converted extension
-            const targetFileName = convertToTargetFileName(fileName);
-            const targetFileHandle = await currentDir.getFileHandle(targetFileName, { create: true });
-            const writable = await targetFileHandle.createWritable();
-            await writable.write(result.cCode);
-            await writable.close();
-          }
-
-          // Emit file completed event
-          this.completedFiles++;
-          this.emit({
-            type: TranspilationEventType.FILE_COMPLETED,
-            filePath: file.path,
-            fileName: file.name,
-            result,
-            progress: {
-              current,
-              total,
-              percentage: (current / total) * 100
-            },
-            metrics: this.calculateMetrics(current, total)
-          });
-
-        } catch (error) {
-          // Emit file error event (but continue with other files)
-          const errorMessage = error instanceof Error ? error.message : String(error);
-
-          this.emit({
-            type: TranspilationEventType.FILE_ERROR,
-            filePath: file.path,
-            fileName: file.name,
-            result: {
-              success: false,
-              error: errorMessage,
-              sourcePath: file.path
-            },
-            progress: {
-              current,
-              total,
-              percentage: (current / total) * 100
-            },
-            error: errorMessage
-          });
-
-          this.completedFiles++;
-        }
-      }
-
-      // Emit completed event
-      this.emit({
-        type: TranspilationEventType.COMPLETED,
-        progress: { current: total, total, percentage: 100 },
-        metrics: this.calculateMetrics(total, total)
-      });
-
-    } catch (error) {
-      // Emit global error event
-      const errorMessage = error instanceof Error ? error.message : String(error);
-
-      this.emit({
-        type: TranspilationEventType.ERROR,
-        error: errorMessage
-      });
-    }
   }
 
   /**
@@ -276,9 +179,259 @@ export class TranspilationController {
   /**
    * Cancel transpilation
    */
-  cancel(): void {
+  async cancel(): Promise<void> {
     if (this.abortController) {
       this.abortController.abort();
+    }
+
+    if (this.workerPool) {
+      await this.workerPool.cancel();
+    }
+
+    this.emit({
+      type: TranspilationEventType.CANCELLED
+    });
+  }
+
+  /**
+   * Start transpilation process (parallel or sequential based on mode)
+   */
+  async transpile(
+    sourceFiles: FileInfo[],
+    targetDir: FileSystemDirectoryHandle,
+    options: TranspileOptions
+  ): Promise<void> {
+    // Initialize execution mode on first run
+    await this.initializeExecutionMode();
+
+    // Reset state including pause tracking
+    this.abortController = new AbortController();
+    this.isPaused = false;
+    this.startTime = Date.now();
+    this.completedFiles = 0;
+    this.pauseStartTime = 0;
+    this.totalPausedTime = 0;
+
+    // Emit started event
+    this.emit({
+      type: TranspilationEventType.STARTED,
+      progress: {
+        current: 0,
+        total: sourceFiles.length,
+        percentage: 0
+      },
+      metrics: this.calculateMetrics(0, sourceFiles.length)
+    });
+
+    try {
+      if (this.executionMode === 'parallel' && this.workerPool) {
+        await this.transpileParallel(sourceFiles, targetDir, options);
+      } else {
+        await this.transpileSequential(sourceFiles, targetDir, options);
+      }
+
+      // Emit completed event
+      this.emit({
+        type: TranspilationEventType.COMPLETED,
+        progress: {
+          current: this.completedFiles,
+          total: sourceFiles.length,
+          percentage: 100
+        },
+        metrics: this.calculateMetrics(this.completedFiles, sourceFiles.length)
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        // Already emitted CANCELLED event
+        return;
+      }
+
+      this.emit({
+        type: TranspilationEventType.ERROR,
+        error: error instanceof Error ? error.message : String(error)
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Transpile using worker pool (parallel mode)
+   */
+  private async transpileParallel(
+    sourceFiles: FileInfo[],
+    targetDir: FileSystemDirectoryHandle,
+    options: TranspileOptions
+  ): Promise<void> {
+    if (!this.workerPool) {
+      throw new Error('Worker pool not initialized');
+    }
+
+    // Read all file contents first
+    const sources = new Map<string, string>();
+    for (const file of sourceFiles) {
+      const fileHandle = await file.handle.getFile();
+      const content = await fileHandle.text();
+      sources.set(file.path, content);
+    }
+
+    // Set up overall progress tracking
+    this.workerPool.onOverallProgress((event) => {
+      this.completedFiles = event.completed;
+      // Note: We don't emit progress here to avoid duplicate events
+    });
+
+    // Set up per-file progress tracking
+    this.workerPool.onProgress((event) => {
+      this.emit({
+        type: TranspilationEventType.FILE_STARTED,
+        filePath: event.file.path,
+        fileName: event.file.name,
+        progress: {
+          current: this.completedFiles,
+          total: sourceFiles.length,
+          percentage: (this.completedFiles / sourceFiles.length) * 100
+        }
+      });
+    });
+
+    // Transpile all files in parallel
+    const results = await this.workerPool.transpileAll(sourceFiles, sources, options);
+
+    // Write results to target directory
+    for (const [filePath, result] of results.entries()) {
+      // Parse directory path from file.path to preserve structure
+      const pathParts = filePath.split('/');
+      const fileName = pathParts.pop()!;
+
+      // Create nested directories if needed
+      let currentDir = targetDir;
+      for (const dirName of pathParts) {
+        if (dirName) {
+          currentDir = await currentDir.getDirectoryHandle(dirName, { create: true });
+        }
+      }
+
+      const targetFileName = convertToTargetFileName(fileName);
+
+      if (result.success && result.cCode) {
+        // Write transpiled file
+        const fileHandle = await currentDir.getFileHandle(targetFileName, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(result.cCode);
+        await writable.close();
+
+        this.emit({
+          type: TranspilationEventType.FILE_COMPLETED,
+          filePath,
+          fileName: targetFileName,
+          result
+        });
+      } else {
+        this.emit({
+          type: TranspilationEventType.FILE_ERROR,
+          filePath,
+          fileName: targetFileName,
+          result,
+          error: result.error
+        });
+      }
+    }
+  }
+
+  /**
+   * Transpile sequentially (fallback mode)
+   */
+  private async transpileSequential(
+    sourceFiles: FileInfo[],
+    targetDir: FileSystemDirectoryHandle,
+    options: TranspileOptions
+  ): Promise<void> {
+    if (!this.fallbackAdapter) {
+      throw new Error('Fallback adapter not initialized');
+    }
+
+    for (let i = 0; i < sourceFiles.length; i++) {
+      // Check for cancellation
+      if (this.abortController?.signal.aborted) {
+        throw new Error('Transpilation cancelled');
+      }
+
+      // Handle pause
+      while (this.isPaused && !this.abortController?.signal.aborted) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      const file = sourceFiles[i];
+
+      // Emit file started event
+      this.emit({
+        type: TranspilationEventType.FILE_STARTED,
+        filePath: file.path,
+        fileName: file.name,
+        progress: {
+          current: i,
+          total: sourceFiles.length,
+          percentage: (i / sourceFiles.length) * 100
+        },
+        metrics: this.calculateMetrics(i, sourceFiles.length)
+      });
+
+      try {
+        // Read file content
+        const fileHandle = await file.handle.getFile();
+        const content = await fileHandle.text();
+
+        // Transpile
+        const result = await this.fallbackAdapter.transpile(content, {
+          ...options,
+          sourcePath: file.path
+        });
+
+        // Parse directory path from file.path to preserve structure
+        const pathParts = file.path.split('/');
+        const fileName = pathParts.pop()!;
+
+        // Create nested directories if needed
+        let currentDir = targetDir;
+        for (const dirName of pathParts) {
+          if (dirName) {
+            currentDir = await currentDir.getDirectoryHandle(dirName, { create: true });
+          }
+        }
+
+        // Write to target directory if successful
+        if (result.success && result.cCode) {
+          const targetFileName = convertToTargetFileName(fileName);
+          const targetFileHandle = await currentDir.getFileHandle(targetFileName, { create: true });
+          const writable = await targetFileHandle.createWritable();
+          await writable.write(result.cCode);
+          await writable.close();
+        }
+
+        // Emit file completed event
+        this.completedFiles++;
+        this.emit({
+          type: TranspilationEventType.FILE_COMPLETED,
+          filePath: file.path,
+          fileName: file.name,
+          result,
+          progress: {
+            current: this.completedFiles,
+            total: sourceFiles.length,
+            percentage: (this.completedFiles / sourceFiles.length) * 100
+          },
+          metrics: this.calculateMetrics(this.completedFiles, sourceFiles.length)
+        });
+      } catch (error) {
+        // Emit file error event
+        this.completedFiles++;
+        this.emit({
+          type: TranspilationEventType.FILE_ERROR,
+          filePath: file.path,
+          fileName: file.name,
+          error: error instanceof Error ? error.message : String(error)
+        });
+      }
     }
   }
 
@@ -290,11 +443,18 @@ export class TranspilationController {
   }
 
   /**
+   * Get current execution mode
+   */
+  getExecutionMode(): ExecutionMode | null {
+    return this.executionMode;
+  }
+
+  /**
    * Clean up resources
    */
   dispose(): void {
-    this.cancel();
+    this.workerPool?.dispose();
+    this.fallbackAdapter?.dispose?.();
     this.listeners.clear();
-    this.transpiler.dispose();
   }
 }

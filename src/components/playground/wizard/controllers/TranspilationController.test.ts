@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { FileInfo } from '../types';
 
 // Mock WasmTranspilerAdapter before importing TranspilationController
@@ -12,7 +12,56 @@ vi.mock('../../../../adapters/WasmTranspilerAdapter', () => ({
   }))
 }));
 
-// Import TranspilationController after mock
+// Mock WorkerPoolController
+vi.mock('../../../../workers/WorkerPoolController', () => ({
+  WorkerPoolController: vi.fn().mockImplementation(() => {
+    const progressListeners: any[] = [];
+    const overallProgressListeners: any[] = [];
+
+    return {
+      initialize: vi.fn().mockResolvedValue(undefined),
+      transpileAll: vi.fn().mockImplementation(async (files, sources, options) => {
+        const results = new Map();
+
+        // Simulate transpilation for each file
+        for (const file of files) {
+          // Emit per-file progress
+          progressListeners.forEach(listener =>
+            listener({ file, progress: 50, stage: 'transpiling' })
+          );
+
+          results.set(file.path, {
+            success: true,
+            cCode: '// transpiled code from worker',
+            sourcePath: file.path
+          });
+        }
+
+        // Emit overall progress
+        overallProgressListeners.forEach(listener =>
+          listener({
+            completed: files.length,
+            total: files.length,
+            percentage: 100,
+            currentFiles: []
+          })
+        );
+
+        return results;
+      }),
+      onProgress: vi.fn().mockImplementation((listener) => {
+        progressListeners.push(listener);
+      }),
+      onOverallProgress: vi.fn().mockImplementation((listener) => {
+        overallProgressListeners.push(listener);
+      }),
+      cancel: vi.fn().mockResolvedValue(undefined),
+      dispose: vi.fn()
+    };
+  })
+}));
+
+// Import TranspilationController after mocks
 import { TranspilationController, TranspilationEventType } from './TranspilationController';
 
 describe('TranspilationController', () => {
@@ -20,6 +69,10 @@ describe('TranspilationController', () => {
 
   beforeEach(() => {
     controller = new TranspilationController();
+  });
+
+  afterEach(() => {
+    controller.dispose();
   });
 
   it('emits STARTED event when transpilation begins', async () => {
@@ -95,14 +148,13 @@ describe('TranspilationController', () => {
 
     await controller.transpile(mockFiles, mockTargetDir, { targetStandard: 'c99', includeACSL: true });
 
-    const fileStartedEvents = listener.mock.calls.filter(
-      call => call[0].type === TranspilationEventType.FILE_STARTED
+    const completedEvents = listener.mock.calls.filter(
+      call => call[0].type === TranspilationEventType.COMPLETED
     );
 
-    // First file should be 1/2 = 50%
-    expect(fileStartedEvents[0][0].progress).toEqual({ current: 1, total: 2, percentage: 50 });
-    // Second file should be 2/2 = 100%
-    expect(fileStartedEvents[1][0].progress).toEqual({ current: 2, total: 2, percentage: 100 });
+    // Should complete with 100% progress
+    expect(completedEvents).toHaveLength(1);
+    expect(completedEvents[0][0].progress).toEqual({ current: 2, total: 2, percentage: 100 });
   });
 
   it('includes metrics in events', async () => {
@@ -405,6 +457,111 @@ describe('TranspilationController', () => {
       expect(controller['totalPausedTime']).toBe(0);
     });
   });
+
+  describe('Parallel Execution', () => {
+    it('initializes in parallel mode when workers available', async () => {
+      const mockFiles: FileInfo[] = [
+        { path: 'test.cpp', name: 'test.cpp', handle: createMockFileHandle('int main() { return 0; }'), size: 100 }
+      ];
+      const mockTargetDir = createMockDirectoryHandle();
+
+      await controller.transpile(mockFiles, mockTargetDir, {
+        targetStandard: 'c99',
+        includeACSL: false
+      });
+
+      // After transpilation, execution mode should be set
+      expect(controller.getExecutionMode()).toBe('parallel');
+    });
+
+    it('uses worker pool for parallel transpilation', async () => {
+      const listener = vi.fn();
+      controller.on(listener);
+
+      const mockFiles: FileInfo[] = [
+        { path: 'file1.cpp', name: 'file1.cpp', handle: createMockFileHandle('// code 1'), size: 100 },
+        { path: 'file2.cpp', name: 'file2.cpp', handle: createMockFileHandle('// code 2'), size: 200 }
+      ];
+      const mockTargetDir = createMockDirectoryHandle();
+
+      await controller.transpile(mockFiles, mockTargetDir, {
+        targetStandard: 'c99',
+        includeACSL: false
+      });
+
+      // Should have emitted events
+      const types = listener.mock.calls.map(call => call[0].type);
+      expect(types).toContain(TranspilationEventType.STARTED);
+      expect(types).toContain(TranspilationEventType.FILE_STARTED);
+      expect(types).toContain(TranspilationEventType.FILE_COMPLETED);
+      expect(types).toContain(TranspilationEventType.COMPLETED);
+    });
+
+    it('handles parallel transpilation cancellation', async () => {
+      const listener = vi.fn();
+      controller.on(listener);
+
+      const mockFiles: FileInfo[] = Array(10)
+        .fill(null)
+        .map((_, i) => ({
+          path: `file${i}.cpp`,
+          name: `file${i}.cpp`,
+          handle: createMockFileHandle(`// code ${i}`),
+          size: 100
+        }));
+      const mockTargetDir = createMockDirectoryHandle();
+
+      // Start transpilation
+      const promise = controller.transpile(mockFiles, mockTargetDir, {
+        targetStandard: 'c99',
+        includeACSL: false
+      });
+
+      // Cancel immediately
+      await controller.cancel();
+
+      // Wait for promise to resolve/reject
+      await promise.catch(() => {});
+
+      // Should have CANCELLED event
+      const types = listener.mock.calls.map(call => call[0].type);
+      expect(types).toContain(TranspilationEventType.CANCELLED);
+    });
+
+    it('preserves directory structure in parallel mode', async () => {
+      const mockFiles: FileInfo[] = [
+        { path: 'src/file1.cpp', name: 'file1.cpp', handle: createMockFileHandle('// code 1'), size: 100 },
+        { path: 'src/utils/file2.cpp', name: 'file2.cpp', handle: createMockFileHandle('// code 2'), size: 200 }
+      ];
+      const mockTargetDir = createMockDirectoryHandle();
+
+      await controller.transpile(mockFiles, mockTargetDir, {
+        targetStandard: 'c99',
+        includeACSL: false
+      });
+
+      // Verify directory structure was created
+      expect(mockTargetDir.getDirectoryHandle).toHaveBeenCalled();
+    });
+
+    it('emits execution mode after initialization', async () => {
+      const mockFiles: FileInfo[] = [
+        { path: 'test.cpp', name: 'test.cpp', handle: createMockFileHandle('int main() {}'), size: 100 }
+      ];
+      const mockTargetDir = createMockDirectoryHandle();
+
+      // Mode should be null before first transpilation
+      expect(controller.getExecutionMode()).toBeNull();
+
+      await controller.transpile(mockFiles, mockTargetDir, {
+        targetStandard: 'c99',
+        includeACSL: false
+      });
+
+      // Mode should be set after transpilation
+      expect(controller.getExecutionMode()).toBe('parallel');
+    });
+  });
 });
 
 // Helper functions
@@ -426,7 +583,16 @@ function createMockDirectoryHandle(): FileSystemDirectoryHandle {
     createWritable: vi.fn().mockResolvedValue(writableMock)
   };
 
+  // Recursively create sub-directory mocks
+  const subdirMock = {
+    getFileHandle: vi.fn().mockResolvedValue(fileHandleMock),
+    getDirectoryHandle: vi.fn().mockImplementation((name: string) => {
+      return Promise.resolve(createMockDirectoryHandle());
+    })
+  };
+
   return {
-    getFileHandle: vi.fn().mockResolvedValue(fileHandleMock)
+    getFileHandle: vi.fn().mockResolvedValue(fileHandleMock),
+    getDirectoryHandle: vi.fn().mockResolvedValue(subdirMock)
   } as any;
 }

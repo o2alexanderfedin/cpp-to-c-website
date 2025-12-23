@@ -31,6 +31,7 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
   const [hasStarted, setHasStarted] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [executionMode, setExecutionMode] = useState<'parallel' | 'sequential' | null>(null);
 
   // Initialize all files as pending
   useEffect(() => {
@@ -99,6 +100,14 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
         state.targetDir,
         state.targetOptions
       );
+
+      // Detect execution mode after a brief delay
+      setTimeout(() => {
+        const mode = transpilation.getExecutionMode();
+        if (mode) {
+          setExecutionMode(mode);
+        }
+      }, 100);
     }
   }, [hasStarted, state, onStartTranspilation, transpilation]);
 
@@ -170,6 +179,21 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
         <div className="transpilation-layout">
           {/* Left: Progress and Controls */}
           <div className="progress-section">
+            {/* Execution Mode Indicator */}
+            {executionMode && (
+              <div className="execution-mode-indicator">
+                {executionMode === 'parallel' ? (
+                  <span className="parallel-mode">
+                    ⚡ Parallel Mode ({navigator.hardwareConcurrency - 1} workers)
+                  </span>
+                ) : (
+                  <span className="sequential-mode">
+                    ⏱️ Sequential Mode
+                  </span>
+                )}
+              </div>
+            )}
+
             {/* Progress Bar */}
             <div className="progress-container">
               <div className={`progress-bar ${isPaused ? 'paused' : ''}`}>
@@ -349,6 +373,39 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
           margin: 0 0 1rem 0;
           font-size: 1.25rem;
           color: #333;
+        }
+
+        .execution-mode-indicator {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.5rem 1rem;
+          border-radius: 6px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          margin-bottom: 1rem;
+        }
+
+        .parallel-mode {
+          color: #2ecc71;
+          background-color: rgba(46, 204, 113, 0.1);
+          border: 1px solid rgba(46, 204, 113, 0.3);
+          padding: 0.375rem 0.75rem;
+          border-radius: 4px;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.25rem;
+        }
+
+        .sequential-mode {
+          color: #95a5a6;
+          background-color: rgba(149, 165, 166, 0.1);
+          border: 1px solid rgba(149, 165, 166, 0.3);
+          padding: 0.375rem 0.75rem;
+          border-radius: 4px;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.25rem;
         }
 
         .progress-container {
