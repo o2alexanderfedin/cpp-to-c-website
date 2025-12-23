@@ -1,7 +1,7 @@
 import React from 'react';
 import { WizardStepper } from './WizardStepper';
 import { FileTreeView } from './FileTreeView';
-import { DualPaneViewer } from './DualPaneViewer';
+import { TabbedCodeViewer } from './TabbedCodeViewer';
 import { DownloadOptions } from './DownloadOptions';
 import { ErrorSummary } from './ErrorSummary';
 import type { WizardState, FileInfo } from './types';
@@ -189,7 +189,7 @@ export const Step4Results: React.FC<Step4Props> = ({
                 <p>Loading file contents...</p>
               </div>
             ) : (
-              <DualPaneViewer
+              <TabbedCodeViewer
                 sourceContent={sourceContent}
                 sourceFilename={state.selectedPreviewFile || undefined}
                 transpileContent={transpileContent}
@@ -198,6 +198,7 @@ export const Step4Results: React.FC<Step4Props> = ({
                     ? state.selectedPreviewFile.replace(/\.(cpp|cc|cxx)$/i, '.c')
                     : undefined
                 }
+                defaultTab="cpp"
               />
             )}
           </div>
