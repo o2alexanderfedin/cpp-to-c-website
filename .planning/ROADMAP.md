@@ -485,6 +485,30 @@
 
 ---
 
+## Phase 20: Bugfix - File Tree Status Indicators Not Updating
+
+**Goal**: Fix File Tree to show real-time status icons (⏳ 🔄 ✓ ✗) during transpilation
+
+**Root Cause**: react-arborist Tree component doesn't re-render when fileStatuses Map changes
+
+### Plans
+
+#### 20-01: Force Tree Re-Render When FileStatuses Changes ⬜ NOT STARTED
+**Type**: Bugfix
+**Est**: 30 minutes
+**Files**: `src/components/playground/wizard/FileTreeView.tsx`
+
+**Tasks**:
+1. Add fileStatuses to treeData useMemo dependencies
+2. Test file tree updates during transpilation
+3. Commit fix
+
+**Success**: File tree shows ⏳ → 🔄 → ✓/✗ progression in real-time
+
+**Phase 20 Status**: ⬜ NOT STARTED - File tree status indicators
+
+---
+
 ## Post-Launch (Future Phases - Out of Current Scope)
 
 **Phase 6: Enhanced Features** (v1.1)
@@ -560,6 +584,6 @@
 
 **Created**: 2025-12-22
 **Last Updated**: 2025-12-22
-**Status**: ✅ **COMPLETE** (35/35 plans - 100%)
-**Latest**: Phase 19-01 - Real-time UI updates fixed
-**Next Phase**: Post-launch enhancements (v1.1+)
+**Status**: 🔄 **IN PROGRESS** (35/36 plans - 97%)
+**Latest**: Phase 20-01 created - File tree status indicators
+**Next Plan**: 20-01 - Force Tree re-render when fileStatuses changes
