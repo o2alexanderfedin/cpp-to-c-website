@@ -55,11 +55,8 @@ export class WasmTranspilerAdapter implements ITranspiler {
       try {
         // Load the WASM module from public directory
         // The files are in public/wasm/ which maps to /cpp-to-c-website/wasm/ with base path
-        // Determine base URL from current location
-        // Use self.location instead of window.location to work in both main thread and workers
-        const baseUrl = self.location.pathname.includes('/cpp-to-c-website/')
-          ? '/cpp-to-c-website/'
-          : '/';
+        // Use Vite's BASE_URL which works in all contexts (main thread, workers, etc.)
+        const baseUrl = import.meta.env.BASE_URL || '/';
         const wasmJsPath = `${baseUrl}wasm/cpptoc.js`;
 
         // Dynamically import the Emscripten module as an ES module
