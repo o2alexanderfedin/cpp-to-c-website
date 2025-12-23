@@ -12,6 +12,7 @@ export interface DownloadOptionsProps {
   transpilationResults: Map<string, TranspileResult>;
   selectedFile?: string | null;
   selectedFileContent?: string;
+  selectedHeaderContent?: string;
   elapsedTime?: number; // In milliseconds
   targetDirSelected?: boolean; // Whether files were written to target dir
 }
@@ -20,6 +21,7 @@ export const DownloadOptions: React.FC<DownloadOptionsProps> = ({
   transpilationResults,
   selectedFile,
   selectedFileContent,
+  selectedHeaderContent,
   elapsedTime,
   targetDirSelected = false,
 }) => {
@@ -42,7 +44,7 @@ export const DownloadOptions: React.FC<DownloadOptionsProps> = ({
     };
   }, [transpilationResults, elapsedTime]);
 
-  // Download current file
+  // Download current .c file
   const handleDownloadFile = React.useCallback(() => {
     if (!selectedFile || !selectedFileContent) return;
 
@@ -51,6 +53,16 @@ export const DownloadOptions: React.FC<DownloadOptionsProps> = ({
       .replace(/\.(hpp|hxx)$/i, '.h');
     downloadFile(filename, selectedFileContent);
   }, [selectedFile, selectedFileContent]);
+
+  // Download current .h file
+  const handleDownloadHeader = React.useCallback(() => {
+    if (!selectedFile || !selectedHeaderContent) return;
+
+    const filename = selectedFile
+      .replace(/\.(cpp|cc|cxx)$/i, '.h')
+      .replace(/\.(hpp|hxx)$/i, '.h');
+    downloadFile(filename, selectedHeaderContent);
+  }, [selectedFile, selectedHeaderContent]);
 
   // Download all as ZIP
   const handleDownloadZip = React.useCallback(async () => {
@@ -110,13 +122,23 @@ export const DownloadOptions: React.FC<DownloadOptionsProps> = ({
             {isCreatingZip ? 'Creating ZIP...' : 'Download All as ZIP'}
           </button>
 
+          {selectedFile && selectedHeaderContent && (
+            <button
+              className="download-btn download-btn-secondary"
+              onClick={handleDownloadHeader}
+              disabled={!selectedHeaderContent}
+            >
+              Download Header (.h)
+            </button>
+          )}
+
           {selectedFile && (
             <button
               className="download-btn download-btn-secondary"
               onClick={handleDownloadFile}
               disabled={!selectedFileContent}
             >
-              Download {selectedFile.split('/').pop()}
+              Download Implementation (.c)
             </button>
           )}
         </div>

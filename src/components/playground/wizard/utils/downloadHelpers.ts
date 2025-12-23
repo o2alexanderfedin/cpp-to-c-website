@@ -30,12 +30,22 @@ export async function createZipArchive(
 
   // Add successful transpilations to ZIP
   for (const [path, result] of results.entries()) {
-    if (result.success && result.cCode) {
-      // Convert .cpp/.cc/.cxx -> .c and .hpp/.hxx -> .h
-      const cPath = path
-        .replace(/\.(cpp|cc|cxx)$/i, '.c')
-        .replace(/\.(hpp|hxx)$/i, '.h');
-      zip.file(cPath, result.cCode);
+    if (result.success) {
+      // Add .h file if present
+      if (result.hCode) {
+        const hPath = path
+          .replace(/\.(cpp|cc|cxx)$/i, '.h')
+          .replace(/\.(hpp|hxx)$/i, '.h');
+        zip.file(hPath, result.hCode);
+      }
+
+      // Add .c file if present
+      if (result.cCode) {
+        const cPath = path
+          .replace(/\.(cpp|cc|cxx)$/i, '.c')
+          .replace(/\.(hpp|hxx)$/i, '.h');
+        zip.file(cPath, result.cCode);
+      }
     }
   }
 
@@ -61,13 +71,18 @@ export function downloadZip(blob: Blob, filename: string = 'transpiled.zip'): vo
 /**
  * Calculate total bytes in transpilation results
  * @param results - Map of transpilation results
- * @returns Total bytes (C code only)
+ * @returns Total bytes (C code and header files)
  */
 export function calculateTotalBytes(results: Map<string, TranspileResult>): number {
   let total = 0;
   for (const result of results.values()) {
-    if (result.success && result.cCode) {
-      total += new Blob([result.cCode]).size;
+    if (result.success) {
+      if (result.cCode) {
+        total += new Blob([result.cCode]).size;
+      }
+      if (result.hCode) {
+        total += new Blob([result.hCode]).size;
+      }
     }
   }
   return total;

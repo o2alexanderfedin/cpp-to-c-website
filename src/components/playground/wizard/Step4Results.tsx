@@ -21,6 +21,7 @@ export const Step4Results: React.FC<Step4Props> = ({
   // Local state for loaded file contents
   const [sourceContent, setSourceContent] = React.useState<string>('');
   const [transpileContent, setTranspileContent] = React.useState<string>('');
+  const [headerContent, setHeaderContent] = React.useState<string>('');
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [loadError, setLoadError] = React.useState<string | null>(null);
 
@@ -47,6 +48,7 @@ export const Step4Results: React.FC<Step4Props> = ({
       if (!state.selectedPreviewFile) {
         setSourceContent('');
         setTranspileContent('');
+        setHeaderContent('');
         return;
       }
 
@@ -68,16 +70,20 @@ export const Step4Results: React.FC<Step4Props> = ({
         const result = state.transpilationResults.get(state.selectedPreviewFile);
         if (result?.success && result.cCode) {
           setTranspileContent(result.cCode);
+          setHeaderContent(result.hCode || '');
         } else if (result?.error) {
           setTranspileContent(`// Transpilation failed:\n// ${result.error}`);
+          setHeaderContent('');
         } else {
           setTranspileContent('// No transpiled output available');
+          setHeaderContent('');
         }
       } catch (error) {
         console.error('Error loading file:', error);
         setLoadError(error instanceof Error ? error.message : 'Unknown error');
         setSourceContent('');
         setTranspileContent('');
+        setHeaderContent('');
       } finally {
         setIsLoading(false);
       }
@@ -198,6 +204,12 @@ export const Step4Results: React.FC<Step4Props> = ({
                     ? state.selectedPreviewFile.replace(/\.(cpp|cc|cxx)$/i, '.c')
                     : undefined
                 }
+                headerContent={headerContent}
+                headerFilename={
+                  state.selectedPreviewFile
+                    ? state.selectedPreviewFile.replace(/\.(cpp|cc|cxx)$/i, '.h')
+                    : undefined
+                }
                 defaultTab="cpp"
               />
             )}
@@ -217,6 +229,7 @@ export const Step4Results: React.FC<Step4Props> = ({
             transpilationResults={state.transpilationResults}
             selectedFile={state.selectedPreviewFile}
             selectedFileContent={transpileContent}
+            selectedHeaderContent={headerContent}
             elapsedTime={elapsedTime}
             targetDirSelected={state.targetDir !== null}
           />

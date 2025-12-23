@@ -36,9 +36,14 @@ export interface TranspileResult {
   success: boolean;
 
   /**
-   * Transpiled C code (if successful)
+   * Transpiled C implementation code (if successful)
    */
   cCode?: string;
+
+  /**
+   * Transpiled C header code (if successful)
+   */
+  hCode?: string;
 
   /**
    * Error message (if failed)

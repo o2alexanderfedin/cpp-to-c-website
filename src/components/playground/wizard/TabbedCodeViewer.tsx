@@ -11,6 +11,8 @@ import { FileContentDisplay } from './FileContentDisplay';
  *   sourceFilename="example.cpp"
  *   transpileContent={cCode}
  *   transpileFilename="example.c"
+ *   headerContent={hCode}
+ *   headerFilename="example.h"
  *   defaultTab="cpp"
  * />
  * ```
@@ -21,7 +23,9 @@ export interface TabbedCodeViewerProps {
   sourceFilename?: string;
   transpileContent: string;
   transpileFilename?: string;
-  defaultTab?: 'cpp' | 'c';
+  headerContent?: string;
+  headerFilename?: string;
+  defaultTab?: 'cpp' | 'h' | 'c';
 }
 
 export const TabbedCodeViewer: React.FC<TabbedCodeViewerProps> = ({
@@ -29,17 +33,22 @@ export const TabbedCodeViewer: React.FC<TabbedCodeViewerProps> = ({
   sourceFilename,
   transpileContent,
   transpileFilename,
+  headerContent,
+  headerFilename,
   defaultTab = 'cpp',
 }) => {
-  const [activeTab, setActiveTab] = useState<'cpp' | 'c'>(defaultTab);
+  const [activeTab, setActiveTab] = useState<'cpp' | 'h' | 'c'>(defaultTab);
 
-  // Keyboard shortcuts: Alt+1 for C++, Alt+2 for C
+  // Keyboard shortcuts: Alt+1 for C++, Alt+2 for Header, Alt+3 for C
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.altKey && e.key === '1') {
         e.preventDefault();
         setActiveTab('cpp');
-      } else if (e.altKey && e.key === '2') {
+      } else if (e.altKey && e.key === '2' && headerContent) {
+        e.preventDefault();
+        setActiveTab('h');
+      } else if (e.altKey && e.key === '3') {
         e.preventDefault();
         setActiveTab('c');
       }
@@ -47,7 +56,7 @@ export const TabbedCodeViewer: React.FC<TabbedCodeViewerProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [headerContent]);
 
   return (
     <div className="tabbed-code-viewer">
@@ -60,12 +69,21 @@ export const TabbedCodeViewer: React.FC<TabbedCodeViewerProps> = ({
         >
           C++ Source
         </button>
+        {headerContent && (
+          <button
+            className={`tab ${activeTab === 'h' ? 'active' : ''}`}
+            onClick={() => setActiveTab('h')}
+            title="Header File (.h) (Alt+2)"
+          >
+            Header (.h)
+          </button>
+        )}
         <button
           className={`tab ${activeTab === 'c' ? 'active' : ''}`}
           onClick={() => setActiveTab('c')}
-          title="C Transpiled (Alt+2)"
+          title={`C Implementation (Alt+${headerContent ? '3' : '2'})`}
         >
-          C Transpiled
+          Implementation (.c)
         </button>
       </div>
 
@@ -77,6 +95,13 @@ export const TabbedCodeViewer: React.FC<TabbedCodeViewerProps> = ({
             filename={sourceFilename}
             language="cpp"
             emptyMessage="No source file selected"
+          />
+        ) : activeTab === 'h' ? (
+          <FileContentDisplay
+            content={headerContent || ''}
+            filename={headerFilename}
+            language="c"
+            emptyMessage="No header file generated"
           />
         ) : (
           <FileContentDisplay
