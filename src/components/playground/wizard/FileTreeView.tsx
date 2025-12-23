@@ -67,7 +67,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
   const treeData = React.useMemo(() => {
     const root = buildTreeData(files);
     return showRoot ? [root] : root.children || [];
-  }, [files, showRoot]);
+  }, [files, showRoot, fileStatuses]);
 
   // Auto-scroll to selected file
   useEffect(() => {
