@@ -34,6 +34,9 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
   const [isComplete, setIsComplete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [executionMode, setExecutionMode] = useState<'parallel' | 'sequential' | null>(null);
+  const [startTime, setStartTime] = useState<number>(0);
+  const [pauseStartTime, setPauseStartTime] = useState<number>(0);
+  const [totalPausedTime, setTotalPausedTime] = useState<number>(0);
 
   // Initialize all files as pending
   useEffect(() => {
@@ -99,6 +102,7 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
   useEffect(() => {
     if (!hasStarted && state.sourceFiles.length > 0 && state.targetDir) {
       setHasStarted(true);
+      setStartTime(Date.now()); // Track start time for metrics
       onStartTranspilation();
 
       // Start transpilation
@@ -121,13 +125,19 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
   const handlePause = useCallback(() => {
     transpilation.pause();
     setIsPaused(true);
+    setPauseStartTime(Date.now());
     onPauseTranspilation();
   }, [transpilation, onPauseTranspilation]);
 
   const handleResume = useCallback(() => {
     transpilation.resume();
     setIsPaused(false);
-  }, [transpilation]);
+    if (pauseStartTime > 0) {
+      const pauseDuration = Date.now() - pauseStartTime;
+      setTotalPausedTime(prev => prev + pauseDuration);
+      setPauseStartTime(0);
+    }
+  }, [transpilation, pauseStartTime]);
 
   const handleCancel = useCallback(() => {
     transpilation.cancel();
@@ -174,6 +184,44 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
   const successCount = Array.from(fileStatuses.values()).filter(s => s === FileStatus.SUCCESS).length;
   const errorCount = Array.from(fileStatuses.values()).filter(s => s === FileStatus.ERROR).length;
   const completedCount = successCount + errorCount; // Total completed (success + error)
+
+  // Calculate metrics based on completedCount (same source as progress bar)
+  useEffect(() => {
+    if (!hasStarted || isComplete || startTime === 0) return;
+
+    const updateMetrics = () => {
+      const now = Date.now();
+      const activeTime = isPaused
+        ? (pauseStartTime - startTime - totalPausedTime)
+        : (now - startTime - totalPausedTime);
+
+      const elapsedMs = Math.max(0, activeTime);
+
+      // Speed = completedCount / elapsedMs (same data source as progress bar)
+      const filesPerSecond = (completedCount > 0 && elapsedMs > 0)
+        ? (completedCount / elapsedMs) * 1000
+        : 0;
+
+      const remainingFiles = state.sourceFiles.length - completedCount;
+      const estimatedRemainingMs = (filesPerSecond > 0 && remainingFiles > 0)
+        ? (remainingFiles / filesPerSecond) * 1000
+        : 0;
+
+      setMetrics({
+        elapsedMs,
+        filesPerSecond,
+        estimatedRemainingMs
+      });
+    };
+
+    // Update immediately
+    updateMetrics();
+
+    // Update every 100ms for smooth elapsed time counter
+    const interval = setInterval(updateMetrics, 100);
+
+    return () => clearInterval(interval);
+  }, [completedCount, hasStarted, isComplete, startTime, isPaused, pauseStartTime, totalPausedTime, state.sourceFiles.length]);
 
   return (
     <>
