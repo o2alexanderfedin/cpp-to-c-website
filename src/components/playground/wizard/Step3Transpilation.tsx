@@ -173,6 +173,7 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
   // Count files by status
   const successCount = Array.from(fileStatuses.values()).filter(s => s === FileStatus.SUCCESS).length;
   const errorCount = Array.from(fileStatuses.values()).filter(s => s === FileStatus.ERROR).length;
+  const completedCount = successCount + errorCount; // Total completed (success + error)
 
   return (
     <>
@@ -206,7 +207,7 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
               <div className={`progress-bar ${isPaused ? 'paused' : ''}`}>
                 <div
                   className="progress-fill"
-                  style={{ width: `${progress.percentage}%` }}
+                  style={{ width: `${state.sourceFiles.length > 0 ? (completedCount / state.sourceFiles.length) * 100 : 0}%` }}
                 />
                 {isPaused && (
                   <div className="pause-indicator">
@@ -216,7 +217,7 @@ export const Step3Transpilation: React.FC<Step3Props> = ({
                 )}
               </div>
               <div className="progress-text">
-                {progress.current} of {progress.total} files ({Math.round(progress.percentage)}%)
+                {completedCount} of {state.sourceFiles.length} files ({state.sourceFiles.length > 0 ? Math.round((completedCount / state.sourceFiles.length) * 100) : 0}%)
               </div>
             </div>
 

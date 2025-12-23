@@ -144,9 +144,17 @@ export class TranspilationController {
       : (now - this.startTime - this.totalPausedTime);
 
     const elapsedMs = Math.max(0, activeTime);
-    const filesPerSecond = current > 0 ? (current / elapsedMs) * 1000 : 0;
+
+    // Prevent division by zero and unrealistic metrics
+    // Only calculate speed/estimate if we have meaningful elapsed time
+    const filesPerSecond = (current > 0 && elapsedMs > 0)
+      ? (current / elapsedMs) * 1000
+      : 0;
+
     const remainingFiles = total - current;
-    const estimatedRemainingMs = filesPerSecond > 0 ? (remainingFiles / filesPerSecond) * 1000 : 0;
+    const estimatedRemainingMs = (filesPerSecond > 0 && remainingFiles > 0)
+      ? (remainingFiles / filesPerSecond) * 1000
+      : 0;
 
     return {
       elapsedMs,
@@ -358,9 +366,7 @@ export class TranspilationController {
           type: TranspilationEventType.FILE_COMPLETED,
           filePath,
           fileName: targetFileName,
-          result,
-          progress: this.getCurrentProgress(),
-          metrics: this.getCurrentMetrics()
+          result
         });
       } else {
         this.emit({
@@ -368,9 +374,7 @@ export class TranspilationController {
           filePath,
           fileName: targetFileName,
           result,
-          error: result.error,
-          progress: this.getCurrentProgress(),
-          metrics: this.getCurrentMetrics()
+          error: result.error
         });
       }
     }
