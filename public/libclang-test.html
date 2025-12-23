@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>libclang.wasm Test - C++ to C Transpiler</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .status.loading {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        .status.success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        .status.error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .editor {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 10px;
+            resize: vertical;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px 10px 0;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid #dee2e6;
+        }
+        .log {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #666;
+        }
+        h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 libclang.wasm Proof of Concept</h1>
+    <p>Testing C++ parsing and AST access using libclang compiled to WebAssembly</p>
+
+    <div id="status" class="status loading">⏳ Initializing libclang.wasm...</div>
+
+    <button id="transpileBtn" disabled onclick="transpile()">Transpile C++ to C</button>
+    <button onclick="runTests()">Run Tests</button>
+
+    <div class="container">
+        <div class="editor">
+            <h3>C++ Input</h3>
+            <textarea id="cppInput">
+class Point {
+public:
+    int x, y;
+
+    int getX() {
+        return x;
+    }
+
+    void setX(int newX) {
+        x = newX;
+    }
+};
+
+int add(int a, int b) {
+    return a + b;
+}
+            </textarea>
+        </div>
+
+        <div class="editor">
+            <h3>C Output (Generated)</h3>
+            <textarea id="cOutput" readonly></textarea>
+        </div>
+    </div>
+
+    <div class="editor" style="margin-top: 20px;">
+        <h3>📋 Execution Log</h3>
+        <pre id="log" class="log"></pre>
+    </div>
+
+    <script type="module">
+        let Module = null;
+        let libclangReady = false;
+
+        function log(message) {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logEl.textContent += `[${timestamp}] ${message}\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+
+        function setStatus(message, type = 'loading') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        async function initLibClang() {
+            try {
+                log('Loading libclang.wasm module...');
+                setStatus('⏳ Loading libclang.wasm (32MB)...', 'loading');
+
+                // Import the libclang module
+                const createLibClang = (await import('/wasm/libclang.mjs')).default;
+
+                log('Creating WASM instance...');
+                Module = await createLibClang();
+
+                log('✅ libclang.wasm loaded successfully!');
+                log(`WASM heap size: ${(Module.HEAP8.length / 1024 / 1024).toFixed(2)} MB`);
+
+                // Set up virtual filesystem
+                log('Setting up virtual filesystem...');
+                Module.FS.mkdir('/usr');
+                Module.FS.mkdir('/usr/lib');
+                Module.FS.writeFile('/usr/lib/libclang.wasm', 'fake executable');
+                Module.FS.mkdir('/usr/lib/clang');
+                Module.FS.mkdir('/usr/lib/clang/17.0.6');
+                Module.FS.mkdir('/usr/lib/clang/17.0.6/include');
+                log('✅ Virtual filesystem ready');
+
+                // Load Clang headers
+                log('Loading Clang builtin headers...');
+                const headersModule = await import('/wasm/clang-headers.mjs');
+                const headers = headersModule.clangHeaders;
+
+                let loadedCount = 0;
+                for (const [path, content] of Object.entries(headers)) {
+                    const fullPath = `/usr/lib/clang/17.0.6/include/${path}`;
+                    const dirPath = fullPath.substring(0, fullPath.lastIndexOf('/'));
+
+                    // Create directories
+                    const dirs = dirPath.split('/').filter(Boolean);
+                    let currentPath = '';
+                    for (const dir of dirs) {
+                        currentPath += '/' + dir;
+                        try {
+                            Module.FS.mkdir(currentPath);
+                        } catch (e) {
+                            // Directory exists
+                        }
+                    }
+
+                    Module.FS.writeFile(fullPath, content);
+                    loadedCount++;
+                }
+
+                log(`✅ Loaded ${loadedCount} header files`);
+
+                libclangReady = true;
+                setStatus('✅ libclang.wasm ready! Try transpiling C++ code.', 'success');
+                document.getElementById('transpileBtn').disabled = false;
+
+            } catch (error) {
+                log(`❌ Error initializing libclang: ${error.message}`);
+                log(error.stack);
+                setStatus(`❌ Failed to load libclang.wasm: ${error.message}`, 'error');
+            }
+        }
+
+        window.transpile = function() {
+            if (!libclangReady) {
+                alert('libclang.wasm is not ready yet!');
+                return;
+            }
+
+            try {
+                const cppCode = document.getElementById('cppInput').value;
+                log('Starting transpilation...');
+                log(`Input size: ${cppCode.length} characters`);
+
+                // Create Clang index
+                log('Creating Clang index...');
+                const createIndex = Module.cwrap('clang_createIndex', 'number', ['number', 'number']);
+                const index = createIndex(0, 0);
+                log(`✅ Created index: ${index}`);
+
+                // Write source file to virtual filesystem
+                const sourceFile = '/test.cpp';
+                Module.FS.writeFile(sourceFile, cppCode);
+                log(`✅ Written source to ${sourceFile}`);
+
+                // Prepare compiler arguments
+                const args = ['-nostdinc', '-nostdinc++', '-nobuiltininc'];
+                log(`Compiler args: ${args.join(' ')}`);
+
+                const argPtrs = args.map(arg => {
+                    const len = Module.lengthBytesUTF8(arg) + 1;
+                    const ptr = Module._malloc(len);
+                    Module.stringToUTF8(arg, ptr, len);
+                    return ptr;
+                });
+
+                const argArrayPtr = Module._malloc(argPtrs.length * 4);
+                argPtrs.forEach((ptr, i) => {
+                    Module.setValue(argArrayPtr + i * 4, ptr, 'i32');
+                });
+
+                // Parse translation unit
+                log('Parsing C++ code...');
+                const parseTranslationUnit = Module.cwrap(
+                    'clang_parseTranslationUnit',
+                    'number',
+                    ['number', 'string', 'number', 'number', 'number', 'number', 'number']
+                );
+
+                const tu = parseTranslationUnit(
+                    index,
+                    sourceFile,
+                    argArrayPtr,
+                    args.length,
+                    0,
+                    0,
+                    0
+                );
+
+                // Clean up arguments
+                argPtrs.forEach(ptr => Module._free(ptr));
+                Module._free(argArrayPtr);
+
+                if (tu === 0) {
+                    throw new Error('Failed to parse translation unit');
+                }
+
+                log(`✅ Parsed successfully! TU handle: ${tu}`);
+
+                // Get diagnostics
+                const getNumDiagnostics = Module.cwrap('clang_getNumDiagnostics', 'number', ['number']);
+                const numDiags = getNumDiagnostics(tu);
+                log(`Diagnostics: ${numDiags}`);
+
+                // Generate simple C code (placeholder for now)
+                const cCode = `// Generated C code from libclang.wasm
+// Successfully parsed ${cppCode.split('\\n').length} lines of C++
+// Translation unit handle: ${tu}
+// Diagnostics: ${numDiags}
+
+// TODO: Implement C code generation by traversing AST
+// For now, this proves libclang.wasm works!
+
+/* Original C++ code:
+${cppCode}
+*/
+
+// Next step: Use clang_visitChildren() to traverse AST
+// and generate proper C struct/function definitions
+`;
+
+                document.getElementById('cOutput').value = cCode;
+                log('✅ Transpilation complete!');
+                setStatus('✅ Transpilation successful! (Basic parsing demo)', 'success');
+
+                // Cleanup
+                const disposeTranslationUnit = Module.cwrap('clang_disposeTranslationUnit', null, ['number']);
+                const disposeIndex = Module.cwrap('clang_disposeIndex', null, ['number']);
+                disposeTranslationUnit(tu);
+                disposeIndex(index);
+                log('✅ Cleaned up resources');
+
+            } catch (error) {
+                log(`❌ Transpilation error: ${error.message}`);
+                log(error.stack);
+                setStatus(`❌ Transpilation failed: ${error.message}`, 'error');
+                document.getElementById('cOutput').value = `Error: ${error.message}`;
+            }
+        };
+
+        window.runTests = function() {
+            log('=== Running Test Suite ===');
+            transpile();
+        };
+
+        // Initialize on page load
+        log('Page loaded, starting initialization...');
+        initLibClang();
+    </script>
+</body>
+</html>
