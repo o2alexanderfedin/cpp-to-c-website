@@ -54,7 +54,12 @@ interface WasmModule {
   Transpiler: new () => WasmTranspilerInstance;
 }
 
-type CreateCppToCModule = () => Promise<WasmModule>;
+interface CreateModuleOptions {
+  locateFile?: (path: string, prefix?: string) => string;
+  onRuntimeInitialized?: () => void;
+}
+
+type CreateCppToCModule = (options?: CreateModuleOptions) => Promise<WasmModule>;
 
 /**
  * WebAssembly-based transpiler adapter
@@ -101,8 +106,20 @@ export class WasmTranspilerAdapter implements ITranspiler {
         // Dynamically import the WASM module
         const createCppToC = (await import('@hupyy/cpptoc-wasm/full')).default as CreateCppToCModule;
 
-        // Create WASM module instance
-        this.module = await createCppToC();
+        // Create WASM module instance with locateFile to fix 404 errors
+        // WASM files are served from public/wasm/ directory
+        this.module = await createCppToC({
+          locateFile: (path: string) => {
+            // Direct WASM file requests to public/wasm/ directory
+            if (path.endsWith('.wasm')) {
+              const baseUrl = import.meta.env.BASE_URL || '/';
+              const wasmPath = `${baseUrl}wasm/${path}`;
+              console.log(`📍 Locating WASM file: ${path} → ${wasmPath}`);
+              return wasmPath;
+            }
+            return path;
+          }
+        });
 
         // Create transpiler instance
         this.transpiler = new this.module.Transpiler();
