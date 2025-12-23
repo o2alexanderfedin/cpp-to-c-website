@@ -199,18 +199,50 @@ This fix complements Phase 19 (real-time metrics):
 
 ## Deviations from Plan
 
-**None** - Plan executed exactly as written.
+### Additional Fix Required: Expand Folders by Default
 
-All three tasks completed successfully:
-1. ✅ Added `fileStatuses` to useMemo dependency array
-2. ✅ Verified dev server reloaded with fix
-3. ✅ Committed with descriptive message
+**Discovered During User Testing**: After deploying the fileStatuses dependency fix, user reported file tree still not showing status updates.
+
+**Root Cause**: Folders were collapsed by default (`openByDefault={false}`)
+- Individual files hidden inside collapsed folders
+- Status icons not visible even though they were updating
+- Users only saw folder icons (📁), not file status progression
+
+**Additional Fix Applied**:
+```diff
+  <Tree
+    ref={treeRef}
+    data={treeData}
+-   openByDefault={false}
++   openByDefault={true}
+```
+
+**Why This Was Needed**:
+- File status icons only appear on individual files (main.cpp, utils.cpp)
+- If folders are collapsed, files are hidden
+- Users need to see files to see status progression: ⏳ → 🔄 → ✓/✗
+
+**Impact**:
+- All folders now expand automatically
+- Individual files visible during transpilation
+- Status icons update in real-time on visible files
+- Complete visual feedback during execution
+
+**Commits**:
+1. c7a9b91 - Added fileStatuses to useMemo dependencies
+2. **c8a9c01** - Set openByDefault={true} to show files
+
+**Deviation Type**: Auto-fix blocker (Rule 3 from deviation rules)
+- Couldn't proceed without this fix
+- Files were invisible, defeating the purpose of status icons
+- Simple one-line change, documented in summary
 
 ---
 
 ## Commits
 
 **c7a9b91** - fix(20-01): Force FileTreeView re-render when fileStatuses changes
+**c8a9c01** - fix(20-01): Expand folders by default to show file status icons
 
 ---
 
