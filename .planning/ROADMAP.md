@@ -513,6 +513,33 @@
 
 ---
 
+## Phase 21: Bugfix - File Tree Not Auto-Scrolling to Currently Processing File
+
+**Goal**: Fix File Tree to automatically scroll to the currently processing file during transpilation
+
+**Root Cause**: react-arborist scrollTo() called without alignment parameter, preventing proper scroll behavior
+
+### Plans
+
+#### 21-01: Fix scrollTo API Call with Center Alignment ⬜ PLANNED
+**Type**: Bugfix
+**Est**: 20 minutes
+**Files**: `src/components/playground/wizard/FileTreeView.tsx`
+
+**Tasks**:
+1. Add "center" alignment parameter to scrollTo call
+2. Add timing safety check (setTimeout + try/catch)
+3. Test auto-scroll during transpilation
+4. Commit fix
+
+**Success**: File tree auto-scrolls to currently processing file (🔄), centered in viewport
+
+**Status**: ⬜ PLANNED
+
+**Phase 21 Status**: ⬜ PLANNED (0/1 plans - 0%)
+
+---
+
 ## Post-Launch (Future Phases - Out of Current Scope)
 
 **Phase 6: Enhanced Features** (v1.1)
@@ -588,6 +615,6 @@
 
 **Created**: 2025-12-22
 **Last Updated**: 2025-12-22
-**Status**: ✅ **COMPLETE** (36/36 plans - 100%)
-**Latest**: Phase 20-01 complete - File tree status indicators fixed
-**All Phases**: Complete - Ready for v1.0 launch
+**Status**: ⚙️ **IN PROGRESS** (36/37 plans - 97%)
+**Latest**: Phase 21-01 planned - File tree auto-scroll fix
+**All Phases**: Phase 21 in progress - Auto-scroll to currently processing file
