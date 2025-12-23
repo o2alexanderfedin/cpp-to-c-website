@@ -56,7 +56,8 @@ export class WasmTranspilerAdapter implements ITranspiler {
         // Load the WASM module from public directory
         // The files are in public/wasm/ which maps to /cpp-to-c-website/wasm/ with base path
         // Determine base URL from current location
-        const baseUrl = window.location.pathname.includes('/cpp-to-c-website/')
+        // Use self.location instead of window.location to work in both main thread and workers
+        const baseUrl = self.location.pathname.includes('/cpp-to-c-website/')
           ? '/cpp-to-c-website/'
           : '/';
         const wasmJsPath = `${baseUrl}wasm/cpptoc.js`;
