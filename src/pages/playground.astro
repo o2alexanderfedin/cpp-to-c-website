@@ -1,33 +1,328 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
+import { PlaygroundWizard } from '../components/playground/wizard';
+import { getBrowserCompatibilityMessage } from '../lib/playground/setup';
+
+// Get browser compatibility information for SSR (will be updated client-side)
+const compatibilityMessage = getBrowserCompatibilityMessage(3); // Default to tier 3 for SSR
 ---
 
-<MainLayout title="Playground - C++ to C Transpiler">
-  <div class="container" style="padding: 2rem 0;">
-    <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Interactive Playground</h1>
-    <p style="color: #666; margin-bottom: 2rem; font-size: 1.1rem;">
-      Try the C++ to C transpiler directly in your browser. WebAssembly-powered playground coming soon.
-    </p>
-
-    <div style="background: #f9f9f9; padding: 2rem; border-radius: 0.5rem; border: 1px solid #e0e0e0;">
-      <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Phase 3: Interactive Code Editor</h2>
-      <p style="color: #666; margin-bottom: 1rem;">
-        The interactive playground with CodeMirror 6 and real-time transpilation will be implemented in Phase 3.
-      </p>
-      <p style="color: #666;">
-        This page will feature a split-pane editor allowing you to write C++ code on the left and see the transpiled C output on the right, all running in your browser using WebAssembly.
-      </p>
+<MainLayout
+  title="Playground - C++ to C Transpiler"
+  description="Try the C++ to C transpiler directly in your browser. Select a directory of C++ files and transpile them to C."
+>
+  <div class="playground-page">
+    <!-- Browser Compatibility Banner -->
+    <div class="compatibility-banner">
+      <div class="container">
+        <h2>Browser Compatibility</h2>
+        <p id="compatibility-message">{compatibilityMessage}</p>
+        <div id="compatibility-details" style="margin-top: 1rem; display: none;">
+          <p style="font-size: 0.9rem; color: #666;">
+            For the best experience, use Chrome 105+ or Edge 105+ on desktop.
+            These browsers support the File System Access API for directory selection.
+          </p>
+        </div>
+      </div>
     </div>
 
-    <div style="margin-top: 2rem;">
-      <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">Coming Soon:</h3>
-      <ul style="list-style: none; padding: 0;">
-        <li style="padding: 0.5rem 0; border-bottom: 1px solid #e0e0e0;">✓ Split-pane code editor with syntax highlighting</li>
-        <li style="padding: 0.5rem 0; border-bottom: 1px solid #e0e0e0;">✓ Real-time C++ to C transpilation</li>
-        <li style="padding: 0.5rem 0; border-bottom: 1px solid #e0e0e0;">✓ Example code snippets</li>
-        <li style="padding: 0.5rem 0; border-bottom: 1px solid #e0e0e0;">✓ Error handling and feedback</li>
-        <li style="padding: 0.5rem 0;">✓ Copy to clipboard functionality</li>
-      </ul>
+    <!-- Playground Wizard Component -->
+    <PlaygroundWizard client:only="react" />
+
+    <!-- Usage Instructions -->
+    <div class="instructions-section">
+      <div class="container">
+        <h2>How to Use</h2>
+        <ol>
+          <li>
+            <strong>Select Directory:</strong> Click "Select Directory" or drag-and-drop a folder containing C++ files (.cpp, .h, .hpp).
+          </li>
+          <li>
+            <strong>Transpile:</strong> Click "Transpile Project" to convert all C++ files to C.
+          </li>
+          <li>
+            <strong>Review Results:</strong> Check the progress indicator and review any errors that occurred.
+          </li>
+          <li>
+            <strong>Download Output:</strong> The transpiled C files will be available for download (or written back to disk on Chrome/Edge).
+          </li>
+        </ol>
+
+        <h3 style="margin-top: 2rem;">Supported File Types</h3>
+        <ul>
+          <li>.cpp - C++ source files</li>
+          <li>.cc, .cxx - Alternative C++ source file extensions</li>
+          <li>.h - C/C++ header files</li>
+          <li>.hpp, .hxx - C++ header files</li>
+        </ul>
+
+        <h3 style="margin-top: 2rem;">Features</h3>
+        <ul>
+          <li>Whole-project transpilation with directory structure preservation</li>
+          <li>Real-time progress reporting with file count and percentage</li>
+          <li>Detailed error reporting per file</li>
+          <li>Cancellation support for long-running operations</li>
+          <li>Accessibility: Full keyboard navigation and screen reader support</li>
+        </ul>
+
+        <h3 style="margin-top: 2rem;">Browser Requirements</h3>
+        <div class="browser-requirements">
+          <div class="tier tier-1">
+            <h4>Tier 1 (Full Support)</h4>
+            <p>Chrome 105+, Edge 105+</p>
+            <p class="tier-features">
+              ✓ Directory selection<br>
+              ✓ Drag-and-drop<br>
+              ✓ Read/write access<br>
+              ✓ Permission management
+            </p>
+          </div>
+          <div class="tier tier-2">
+            <h4>Tier 2 (Partial Support)</h4>
+            <p>Firefox, Safari (desktop)</p>
+            <p class="tier-features">
+              ✓ Directory selection (webkitdirectory)<br>
+              ✓ Read access only<br>
+              ✗ No write-back (download instead)<br>
+              ⚠ Limited drag-and-drop
+            </p>
+          </div>
+          <div class="tier tier-3">
+            <h4>Tier 3 (Limited Support)</h4>
+            <p>Mobile browsers</p>
+            <p class="tier-features">
+              ⚠ Single file upload only<br>
+              ✗ No directory selection<br>
+              ✗ No write-back<br>
+              ⚠ Basic functionality
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Notes -->
+    <div class="performance-section">
+      <div class="container">
+        <h2>Performance</h2>
+        <p>
+          The playground uses server-side transpilation for maximum compatibility and keeps the browser bundle lightweight.
+          Typical performance:
+        </p>
+        <ul>
+          <li><strong>Small projects</strong> (&lt;10 files): &lt;2 seconds</li>
+          <li><strong>Medium projects</strong> (10-100 files): &lt;5 seconds</li>
+          <li><strong>Large projects</strong> (100-500 files): &lt;60 seconds</li>
+        </ul>
+        <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
+          Performance depends on network latency, file size, and code complexity.
+          The transpiler processes files in parallel for optimal throughput.
+        </p>
+      </div>
     </div>
   </div>
+
+  <style>
+    .playground-page {
+      min-height: 80vh;
+    }
+
+    .compatibility-banner {
+      background: #e3f2fd;
+      border: 1px solid #90caf9;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .compatibility-banner h2 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.25rem;
+      color: #1976d2;
+    }
+
+    .compatibility-banner p {
+      margin: 0;
+      color: #424242;
+    }
+
+    .instructions-section {
+      background: #f9f9f9;
+      padding: 3rem 0;
+      margin: 3rem 0;
+    }
+
+    .instructions-section h2 {
+      margin: 0 0 1.5rem 0;
+      font-size: 1.75rem;
+      color: #333;
+    }
+
+    .instructions-section h3 {
+      font-size: 1.25rem;
+      color: #444;
+      margin: 0 0 1rem 0;
+    }
+
+    .instructions-section ol {
+      margin: 0;
+      padding-left: 1.5rem;
+    }
+
+    .instructions-section ol li {
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+
+    .instructions-section ul {
+      margin: 0;
+      padding-left: 1.5rem;
+    }
+
+    .instructions-section ul li {
+      margin-bottom: 0.5rem;
+    }
+
+    .browser-requirements {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .tier {
+      padding: 1.5rem;
+      border-radius: 8px;
+      background: white;
+      border: 2px solid #e0e0e0;
+    }
+
+    .tier-1 {
+      border-color: #4caf50;
+    }
+
+    .tier-2 {
+      border-color: #ff9800;
+    }
+
+    .tier-3 {
+      border-color: #f44336;
+    }
+
+    .tier h4 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.1rem;
+      color: #333;
+    }
+
+    .tier p {
+      margin: 0 0 0.5rem 0;
+      color: #666;
+      font-size: 0.95rem;
+    }
+
+    .tier-features {
+      margin-top: 1rem !important;
+      font-size: 0.9rem !important;
+      line-height: 1.8 !important;
+      color: #555 !important;
+    }
+
+    .performance-section {
+      padding: 2rem 0;
+    }
+
+    .performance-section h2 {
+      margin: 0 0 1rem 0;
+      font-size: 1.75rem;
+      color: #333;
+    }
+
+    .performance-section p {
+      margin: 0 0 1rem 0;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .performance-section ul {
+      margin: 0;
+      padding-left: 1.5rem;
+    }
+
+    .performance-section ul li {
+      margin-bottom: 0.5rem;
+      color: #555;
+    }
+
+    @media (max-width: 768px) {
+      .compatibility-banner {
+        padding: 1rem;
+      }
+
+      .instructions-section {
+        padding: 2rem 0;
+      }
+
+      .browser-requirements {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+  <script>
+    // Client-side browser compatibility detection
+    // This runs in the browser and updates the compatibility message
+    if (typeof window !== 'undefined') {
+      const getBrowserTierClientSide = (): 1 | 2 | 3 => {
+        // Tier 1: Chrome/Edge with File System Access API
+        if (
+          'showDirectoryPicker' in window &&
+          typeof (window as any).showDirectoryPicker === 'function'
+        ) {
+          return 1;
+        }
+
+        // Tier 2: Firefox/Safari with webkitdirectory
+        const input = document.createElement('input');
+        if ('webkitdirectory' in input) {
+          return 2;
+        }
+
+        // Tier 3: Mobile or unsupported
+        return 3;
+      };
+
+      const getCompatibilityMessageClientSide = (tier: 1 | 2 | 3): string => {
+        switch (tier) {
+          case 1:
+            return '✓ Full support: Your browser supports all playground features including directory selection and file writing.';
+          case 2:
+            return '⚠ Partial support: Your browser supports directory selection but not file writing. Transpiled files will be downloaded.';
+          case 3:
+            return '⚠ Limited support: Your browser has limited file system support. Consider using Chrome or Edge for the best experience.';
+        }
+      };
+
+      // Update compatibility message on page load
+      document.addEventListener('DOMContentLoaded', () => {
+        const tier = getBrowserTierClientSide();
+        const message = getCompatibilityMessageClientSide(tier);
+        const messageElement = document.getElementById('compatibility-message');
+        const detailsElement = document.getElementById('compatibility-details');
+
+        if (messageElement) {
+          messageElement.textContent = message;
+        }
+
+        // Show details for non-tier-1 browsers
+        if (tier !== 1 && detailsElement) {
+          detailsElement.style.display = 'block';
+        }
+
+        // Log browser tier for debugging
+        console.log('Browser Tier:', tier);
+        console.log('File System Access API supported:', 'showDirectoryPicker' in window);
+      });
+    }
+  </script>
 </MainLayout>

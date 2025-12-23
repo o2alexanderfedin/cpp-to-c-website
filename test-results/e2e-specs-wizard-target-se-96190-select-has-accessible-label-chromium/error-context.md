@@ -1,0 +1,154 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "C++ to C Transpiler" [ref=e5] [cursor=pointer]:
+        - /url: /cpp-to-c-website/
+      - navigation [ref=e6]:
+        - link "Home" [ref=e7] [cursor=pointer]:
+          - /url: /cpp-to-c-website/
+        - link "About" [ref=e8] [cursor=pointer]:
+          - /url: /cpp-to-c-website/about
+        - link "Features" [ref=e9] [cursor=pointer]:
+          - /url: /cpp-to-c-website/features
+        - link "Architecture" [ref=e10] [cursor=pointer]:
+          - /url: /cpp-to-c-website/architecture
+        - link "Get Started" [ref=e11] [cursor=pointer]:
+          - /url: /cpp-to-c-website/getting-started
+        - link "Playground" [ref=e12] [cursor=pointer]:
+          - /url: /cpp-to-c-website/playground
+        - link "Docs" [ref=e13] [cursor=pointer]:
+          - /url: /cpp-to-c-website/docs
+        - link "Examples" [ref=e14] [cursor=pointer]:
+          - /url: /cpp-to-c-website/examples
+        - link "Benchmarks" [ref=e15] [cursor=pointer]:
+          - /url: /cpp-to-c-website/benchmarks
+        - link "Metrics" [ref=e16] [cursor=pointer]:
+          - /url: /cpp-to-c-website/metrics
+        - link "FAQ" [ref=e17] [cursor=pointer]:
+          - /url: /cpp-to-c-website/faq
+  - main [ref=e18]:
+    - generic [ref=e19]:
+      - generic [ref=e21]:
+        - heading "Browser Compatibility" [level=2] [ref=e22]
+        - paragraph [ref=e23]: "✓ Full support: Your browser supports all playground features including directory selection and file writing."
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - generic [ref=e27]:
+            - generic [ref=e28]:
+              - generic [ref=e30]: ✓
+              - generic [ref=e31]: Source
+            - generic [ref=e33]:
+              - generic [ref=e35]: "2"
+              - generic [ref=e36]: Target
+            - generic [ref=e38]:
+              - generic [ref=e40]: "3"
+              - generic [ref=e41]: Transpile
+            - generic [ref=e43]:
+              - generic [ref=e45]: "4"
+              - generic [ref=e46]: Results
+          - generic [ref=e47]:
+            - button "Go to previous step" [ref=e48] [cursor=pointer]: Back
+            - button "Go to next step" [ref=e49] [cursor=pointer]: Next
+        - generic [ref=e50]:
+          - 'heading "Step 2: Select Target Directory" [level=2] [ref=e51]'
+          - paragraph [ref=e52]: Choose where transpiled C files will be saved.
+          - button "Select Target Directory" [ref=e54] [cursor=pointer]
+          - generic [ref=e55]:
+            - heading "Transpilation Options" [level=3] [ref=e56]
+            - generic [ref=e57]:
+              - generic [ref=e58]: "Target C Standard:"
+              - combobox "Target C Standard:" [ref=e59]:
+                - option "C99" [selected]
+                - option "C11"
+            - generic [ref=e60] [cursor=pointer]:
+              - checkbox "Include ACSL annotations" [checked] [ref=e61]
+              - generic [ref=e62]: Include ACSL annotations
+      - generic [ref=e64]:
+        - heading "How to Use" [level=2] [ref=e65]
+        - list [ref=e66]:
+          - listitem [ref=e67]:
+            - strong [ref=e68]: "Select Directory:"
+            - text: Click "Select Directory" or drag-and-drop a folder containing C++ files (.cpp, .h, .hpp).
+          - listitem [ref=e69]:
+            - strong [ref=e70]: "Transpile:"
+            - text: Click "Transpile Project" to convert all C++ files to C.
+          - listitem [ref=e71]:
+            - strong [ref=e72]: "Review Results:"
+            - text: Check the progress indicator and review any errors that occurred.
+          - listitem [ref=e73]:
+            - strong [ref=e74]: "Download Output:"
+            - text: The transpiled C files will be available for download (or written back to disk on Chrome/Edge).
+        - heading "Supported File Types" [level=3] [ref=e75]
+        - list [ref=e76]:
+          - listitem [ref=e77]: .cpp - C++ source files
+          - listitem [ref=e78]: .cc, .cxx - Alternative C++ source file extensions
+          - listitem [ref=e79]: .h - C/C++ header files
+          - listitem [ref=e80]: .hpp, .hxx - C++ header files
+        - heading "Features" [level=3] [ref=e81]
+        - list [ref=e82]:
+          - listitem [ref=e83]: Whole-project transpilation with directory structure preservation
+          - listitem [ref=e84]: Real-time progress reporting with file count and percentage
+          - listitem [ref=e85]: Detailed error reporting per file
+          - listitem [ref=e86]: Cancellation support for long-running operations
+          - listitem [ref=e87]: "Accessibility: Full keyboard navigation and screen reader support"
+        - heading "Browser Requirements" [level=3] [ref=e88]
+        - generic [ref=e89]:
+          - generic [ref=e90]:
+            - heading "Tier 1 (Full Support)" [level=4] [ref=e91]
+            - paragraph [ref=e92]: Chrome 105+, Edge 105+
+            - paragraph [ref=e93]:
+              - text: ✓ Directory selection
+              - text: ✓ Drag-and-drop
+              - text: ✓ Read/write access
+              - text: ✓ Permission management
+          - generic [ref=e94]:
+            - heading "Tier 2 (Partial Support)" [level=4] [ref=e95]
+            - paragraph [ref=e96]: Firefox, Safari (desktop)
+            - paragraph [ref=e97]:
+              - text: ✓ Directory selection (webkitdirectory)
+              - text: ✓ Read access only
+              - text: ✗ No write-back (download instead)
+              - text: ⚠ Limited drag-and-drop
+          - generic [ref=e98]:
+            - heading "Tier 3 (Limited Support)" [level=4] [ref=e99]
+            - paragraph [ref=e100]: Mobile browsers
+            - paragraph [ref=e101]:
+              - text: ⚠ Single file upload only
+              - text: ✗ No directory selection
+              - text: ✗ No write-back
+              - text: ⚠ Basic functionality
+      - generic [ref=e103]:
+        - heading "Performance" [level=2] [ref=e104]
+        - paragraph [ref=e105]: "The playground uses server-side transpilation for maximum compatibility and keeps the browser bundle lightweight. Typical performance:"
+        - list [ref=e106]:
+          - listitem [ref=e107]:
+            - strong [ref=e108]: Small projects
+            - text: "(<10 files): <2 seconds"
+          - listitem [ref=e109]:
+            - strong [ref=e110]: Medium projects
+            - text: "(10-100 files): <5 seconds"
+          - listitem [ref=e111]:
+            - strong [ref=e112]: Large projects
+            - text: "(100-500 files): <60 seconds"
+        - paragraph [ref=e113]: Performance depends on network latency, file size, and code complexity. The transpiler processes files in parallel for optimal throughput.
+  - contentinfo [ref=e114]:
+    - paragraph [ref=e116]: © 2025 C++ to C Transpiler. Open Source.
+  - generic [ref=e119]:
+    - button "Menu" [ref=e120]:
+      - img [ref=e122]
+      - generic: Menu
+    - button "Inspect" [ref=e126]:
+      - img [ref=e128]
+      - generic: Inspect
+    - button "Audit" [ref=e130]:
+      - img [ref=e132]
+      - generic: Audit
+    - button "Settings" [ref=e135]:
+      - img [ref=e137]
+      - generic: Settings
+```

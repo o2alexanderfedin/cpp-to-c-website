@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WASM Worker Path Test</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    h1 {
+      color: #4ec9b0;
+    }
+    .controls {
+      margin: 20px 0;
+    }
+    button {
+      background: #0e639c;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 4px;
+    }
+    button:hover {
+      background: #1177bb;
+    }
+    .output {
+      background: #252526;
+      border: 1px solid #3e3e42;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 20px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    .log-entry {
+      margin: 5px 0;
+      padding: 5px;
+      border-left: 3px solid #3e3e42;
+      padding-left: 10px;
+    }
+    .log-entry.success {
+      border-left-color: #4ec9b0;
+      color: #4ec9b0;
+    }
+    .log-entry.error {
+      border-left-color: #f48771;
+      color: #f48771;
+    }
+    .log-entry.info {
+      border-left-color: #569cd6;
+      color: #569cd6;
+    }
+    .summary {
+      margin-top: 20px;
+      padding: 15px;
+      background: #264f78;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .result-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .result-table th,
+    .result-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #3e3e42;
+    }
+    .result-table th {
+      background: #2d2d30;
+      color: #4ec9b0;
+    }
+    .status-success {
+      color: #4ec9b0;
+      font-weight: bold;
+    }
+    .status-failed {
+      color: #f48771;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>WASM Worker Path Resolution Test</h1>
+  <p>This page tests different approaches for loading WASM files in Web Worker context.</p>
+
+  <div class="controls">
+    <button id="runTest">Run Tests</button>
+    <button id="clearOutput">Clear Output</button>
+  </div>
+
+  <div class="output" id="output">
+    <div class="log-entry info">Click "Run Tests" to start...</div>
+  </div>
+
+  <script type="module">
+    const output = document.getElementById('output');
+    const runTestBtn = document.getElementById('runTest');
+    const clearOutputBtn = document.getElementById('clearOutput');
+
+    function log(message, type = 'info') {
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = message;
+      output.appendChild(entry);
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function displayResults(results, summary) {
+      // Clear previous results
+      const existingTable = output.querySelector('.result-table');
+      if (existingTable) {
+        existingTable.remove();
+      }
+
+      // Create summary
+      const summaryDiv = document.createElement('div');
+      summaryDiv.className = 'summary';
+      summaryDiv.textContent = `Test Summary: ${summary.passed}/${summary.total} tests passed, ${summary.failed} failed`;
+      output.appendChild(summaryDiv);
+
+      // Create results table
+      const table = document.createElement('table');
+      table.className = 'result-table';
+
+      // Header
+      const thead = document.createElement('thead');
+      thead.innerHTML = `
+        <tr>
+          <th>Test Name</th>
+          <th>Path</th>
+          <th>Status</th>
+          <th>Details</th>
+        </tr>
+      `;
+      table.appendChild(thead);
+
+      // Body
+      const tbody = document.createElement('tbody');
+      results.forEach(result => {
+        const row = document.createElement('tr');
+        const statusClass = result.success ? 'status-success' : 'status-failed';
+        const statusText = result.success ? '✅ SUCCESS' : '❌ FAILED';
+        const details = result.success
+          ? `HTTP ${result.status}`
+          : result.error || `HTTP ${result.status}`;
+
+        row.innerHTML = `
+          <td>${result.name}</td>
+          <td><code>${result.path}</code></td>
+          <td class="${statusClass}">${statusText}</td>
+          <td>${details}</td>
+        `;
+        tbody.appendChild(row);
+      });
+      table.appendChild(tbody);
+
+      output.appendChild(table);
+    }
+
+    runTestBtn.addEventListener('click', () => {
+      log('Creating Web Worker...', 'info');
+
+      try {
+        // Create worker - Vite will handle this correctly
+        const worker = new Worker(
+          new URL('../workers/wasm-test.worker.ts', import.meta.url),
+          { type: 'module' }
+        );
+
+        log('✅ Worker created successfully', 'success');
+        log('Waiting for test results...', 'info');
+
+        worker.onmessage = (e) => {
+          const { type, results, summary, error } = e.data;
+
+          if (type === 'TEST_RESULTS') {
+            log(`📊 Received test results: ${summary.passed}/${summary.total} passed`, 'success');
+            displayResults(results, summary);
+          } else if (type === 'TEST_ERROR') {
+            log(`❌ Worker error: ${error}`, 'error');
+          }
+
+          // Terminate worker after receiving results
+          worker.terminate();
+          log('Worker terminated', 'info');
+        };
+
+        worker.onerror = (error) => {
+          log(`❌ Worker error: ${error.message}`, 'error');
+          console.error('Worker error:', error);
+        };
+
+      } catch (error) {
+        log(`❌ Failed to create worker: ${error.message}`, 'error');
+        console.error('Error creating worker:', error);
+      }
+    });
+
+    clearOutputBtn.addEventListener('click', () => {
+      output.innerHTML = '<div class="log-entry info">Output cleared. Click "Run Tests" to start...</div>';
+    });
+
+    // Log page info on load
+    log(`Page URL: ${window.location.href}`, 'info');
+    const baseUrl = (typeof import.meta.env !== 'undefined' && import.meta.env.BASE_URL) ? import.meta.env.BASE_URL : '/';
+    log(`Base path: ${baseUrl}`, 'info');
+  </script>
+</body>
+</html>
