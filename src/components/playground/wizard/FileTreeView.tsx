@@ -140,7 +140,7 @@ export const FileTreeView: React.FC<FileTreeViewProps> = ({
       <Tree
         ref={treeRef}
         data={treeData}
-        openByDefault={false}
+        openByDefault={true}
         width="100%"
         height={height}
         indent={24}
