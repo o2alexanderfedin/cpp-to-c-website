@@ -540,6 +540,41 @@
 
 ---
 
+## Phase 22: Feature - Tab-Based Code Viewer
+
+**Goal**: Replace dual-pane side-by-side layout with tabbed interface for C++ and C code comparison
+
+**User Request**: "C++ and C should be on tabs, so we can switch the view from C++ to C and back"
+
+### Plans
+
+#### 22-01: Create Tabbed Code Viewer Component ⬜ PLANNED
+**Type**: Feature Enhancement
+**Est**: 45 minutes
+**Files**: `TabbedCodeViewer.tsx` (NEW), `Step4Results.tsx`, `index.ts`
+
+**Tasks**:
+1. Create TabbedCodeViewer component with tab bar UI
+2. Replace DualPaneViewer with TabbedCodeViewer in Step4Results
+3. Update index exports
+4. Test tab switching in browser
+5. Optional: Add keyboard shortcuts (Alt+1/Alt+2)
+6. Commit changes
+
+**Success**: Users can switch between C++ and C tabs for full-width code view
+
+**Benefits**:
+- Full-width code display (100% vs 50% in dual-pane)
+- Better readability without horizontal scrolling
+- Cleaner UI (no resize handle)
+- Familiar tab pattern (like VS Code)
+
+**Status**: ⬜ PLANNED
+
+**Phase 22 Status**: ⬜ PLANNED (0/1 plans - 0%)
+
+---
+
 ## Post-Launch (Future Phases - Out of Current Scope)
 
 **Phase 6: Enhanced Features** (v1.1)
@@ -615,6 +650,6 @@
 
 **Created**: 2025-12-22
 **Last Updated**: 2025-12-22
-**Status**: ⚙️ **IN PROGRESS** (36/37 plans - 97%)
-**Latest**: Phase 21-01 planned - File tree auto-scroll fix
-**All Phases**: Phase 21 in progress - Auto-scroll to currently processing file
+**Status**: ⚙️ **IN PROGRESS** (36/38 plans - 95%)
+**Latest**: Phase 22-01 planned - Tab-based code viewer
+**All Phases**: Phases 21-22 planned - Auto-scroll fix + Tabbed viewer
