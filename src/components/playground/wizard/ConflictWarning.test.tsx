@@ -13,8 +13,8 @@ describe('ConflictWarning', () => {
       <ConflictWarning
         conflicts={conflicts}
         totalFiles={1}
-        onProceed={vi.fn()}
-        onCancel={vi.fn()}
+        acknowledged={false}
+        onAcknowledgeChange={vi.fn()}
       />
     );
 
@@ -32,8 +32,8 @@ describe('ConflictWarning', () => {
       <ConflictWarning
         conflicts={conflicts}
         totalFiles={2}
-        onProceed={vi.fn()}
-        onCancel={vi.fn()}
+        acknowledged={false}
+        onAcknowledgeChange={vi.fn()}
       />
     );
 
@@ -51,8 +51,8 @@ describe('ConflictWarning', () => {
       <ConflictWarning
         conflicts={conflicts}
         totalFiles={2}
-        onProceed={vi.fn()}
-        onCancel={vi.fn()}
+        acknowledged={false}
+        onAcknowledgeChange={vi.fn()}
       />
     );
 
@@ -71,8 +71,8 @@ describe('ConflictWarning', () => {
       <ConflictWarning
         conflicts={conflicts}
         totalFiles={3}
-        onProceed={vi.fn()}
-        onCancel={vi.fn()}
+        acknowledged={false}
+        onAcknowledgeChange={vi.fn()}
       />
     );
 
@@ -89,8 +89,8 @@ describe('ConflictWarning', () => {
       <ConflictWarning
         conflicts={conflicts}
         totalFiles={1}
-        onProceed={vi.fn()}
-        onCancel={vi.fn()}
+        acknowledged={false}
+        onAcknowledgeChange={vi.fn()}
       />
     );
 
@@ -109,8 +109,8 @@ describe('ConflictWarning', () => {
       <ConflictWarning
         conflicts={conflicts}
         totalFiles={1}
-        onProceed={vi.fn()}
-        onCancel={vi.fn()}
+        acknowledged={false}
+        onAcknowledgeChange={vi.fn()}
       />
     );
 
@@ -137,8 +137,8 @@ describe('ConflictWarning', () => {
       <ConflictWarning
         conflicts={conflicts}
         totalFiles={3}
-        onProceed={vi.fn()}
-        onCancel={vi.fn()}
+        acknowledged={false}
+        onAcknowledgeChange={vi.fn()}
       />
     );
 
@@ -155,8 +155,7 @@ describe('ConflictWarning', () => {
     expect(screen.getByText(/src\/helper.cpp/)).toBeInTheDocument();
   });
 
-  it('calls onProceed when proceed button clicked', () => {
-    const handleProceed = vi.fn();
+  it('shows acknowledgment checkbox when conflicts exist', () => {
     const conflicts: FileConflict[] = [
       { sourcePath: 'main.cpp', targetFileName: 'main.c', exists: true }
     ];
@@ -165,17 +164,19 @@ describe('ConflictWarning', () => {
       <ConflictWarning
         conflicts={conflicts}
         totalFiles={1}
-        onProceed={handleProceed}
-        onCancel={vi.fn()}
+        acknowledged={false}
+        onAcknowledgeChange={vi.fn()}
       />
     );
 
-    fireEvent.click(screen.getByText(/Proceed Anyway/));
-    expect(handleProceed).toHaveBeenCalledTimes(1);
+    const checkbox = screen.getByRole('checkbox');
+    expect(checkbox).toBeInTheDocument();
+    expect(checkbox).not.toBeChecked();
+    expect(screen.getByText(/I understand that 1 file will be overwritten/)).toBeInTheDocument();
   });
 
-  it('calls onCancel when cancel button clicked', () => {
-    const handleCancel = vi.fn();
+  it('calls onAcknowledgeChange when checkbox is toggled', () => {
+    const handleChange = vi.fn();
     const conflicts: FileConflict[] = [
       { sourcePath: 'main.cpp', targetFileName: 'main.c', exists: true }
     ];
@@ -184,31 +185,64 @@ describe('ConflictWarning', () => {
       <ConflictWarning
         conflicts={conflicts}
         totalFiles={1}
-        onProceed={vi.fn()}
-        onCancel={handleCancel}
+        acknowledged={false}
+        onAcknowledgeChange={handleChange}
       />
     );
 
-    fireEvent.click(screen.getByText(/Choose Different Directory/));
-    expect(handleCancel).toHaveBeenCalledTimes(1);
+    const checkbox = screen.getByRole('checkbox');
+    fireEvent.click(checkbox);
+
+    expect(handleChange).toHaveBeenCalledTimes(1);
+    expect(handleChange).toHaveBeenCalledWith(true);
   });
 
-  it('does not show action buttons when no conflicts', () => {
+  it('checkbox reflects acknowledged state', () => {
     const conflicts: FileConflict[] = [
-      { sourcePath: 'main.cpp', targetFileName: 'main.c', exists: false }
+      { sourcePath: 'main.cpp', targetFileName: 'main.c', exists: true }
+    ];
+
+    const { rerender } = render(
+      <ConflictWarning
+        conflicts={conflicts}
+        totalFiles={1}
+        acknowledged={false}
+        onAcknowledgeChange={vi.fn()}
+      />
+    );
+
+    let checkbox = screen.getByRole('checkbox');
+    expect(checkbox).not.toBeChecked();
+
+    rerender(
+      <ConflictWarning
+        conflicts={conflicts}
+        totalFiles={1}
+        acknowledged={true}
+        onAcknowledgeChange={vi.fn()}
+      />
+    );
+
+    checkbox = screen.getByRole('checkbox');
+    expect(checkbox).toBeChecked();
+  });
+
+  it('uses plural form for multiple files', () => {
+    const conflicts: FileConflict[] = [
+      { sourcePath: 'a.cpp', targetFileName: 'a.c', exists: true },
+      { sourcePath: 'b.cpp', targetFileName: 'b.c', exists: true }
     ];
 
     render(
       <ConflictWarning
         conflicts={conflicts}
-        totalFiles={1}
-        onProceed={vi.fn()}
-        onCancel={vi.fn()}
+        totalFiles={2}
+        acknowledged={false}
+        onAcknowledgeChange={vi.fn()}
       />
     );
 
-    expect(screen.queryByText(/Proceed Anyway/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Choose Different Directory/)).not.toBeInTheDocument();
+    expect(screen.getByText(/I understand that 2 files will be overwritten/)).toBeInTheDocument();
   });
 
   it('shows warning icon for conflicts', () => {
@@ -220,8 +254,8 @@ describe('ConflictWarning', () => {
       <ConflictWarning
         conflicts={conflicts}
         totalFiles={1}
-        onProceed={vi.fn()}
-        onCancel={vi.fn()}
+        acknowledged={false}
+        onAcknowledgeChange={vi.fn()}
       />
     );
 
@@ -238,8 +272,8 @@ describe('ConflictWarning', () => {
       <ConflictWarning
         conflicts={conflicts}
         totalFiles={1}
-        onProceed={vi.fn()}
-        onCancel={vi.fn()}
+        acknowledged={false}
+        onAcknowledgeChange={vi.fn()}
       />
     );
 

@@ -4,15 +4,15 @@ import type { FileConflict } from './utils/detectConflicts';
 export interface ConflictWarningProps {
   conflicts: FileConflict[];
   totalFiles: number;
-  onProceed: () => void;
-  onCancel: () => void;
+  acknowledged: boolean;
+  onAcknowledgeChange: (acknowledged: boolean) => void;
 }
 
 export const ConflictWarning: React.FC<ConflictWarningProps> = ({
   conflicts,
   totalFiles,
-  onProceed,
-  onCancel
+  acknowledged,
+  onAcknowledgeChange
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   const conflictingFiles = conflicts.filter(c => c.exists);
@@ -94,15 +94,17 @@ export const ConflictWarning: React.FC<ConflictWarningProps> = ({
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="conflict-actions">
-          <button className="proceed-button" onClick={onProceed}>
-            Proceed Anyway (Overwrite Files)
-          </button>
-          <button className="cancel-button" onClick={onCancel}>
-            Choose Different Directory
-          </button>
-        </div>
+        {/* Acknowledgment Checkbox */}
+        <label className="acknowledgment-checkbox">
+          <input
+            type="checkbox"
+            checked={acknowledged}
+            onChange={(e) => onAcknowledgeChange(e.target.checked)}
+          />
+          <span>
+            I understand that {conflictCount} {conflictCount === 1 ? 'file' : 'files'} will be overwritten
+          </span>
+        </label>
       </div>
 
       <style>{`
@@ -197,43 +199,33 @@ export const ConflictWarning: React.FC<ConflictWarningProps> = ({
           color: #666;
         }
 
-        .conflict-actions {
-          margin-top: 1rem;
+        .acknowledgment-checkbox {
           display: flex;
-          gap: 0.75rem;
-          flex-wrap: wrap;
-        }
-
-        .proceed-button {
-          padding: 0.5rem 1rem;
-          background-color: #dc3545;
-          color: white;
-          border: none;
+          align-items: center;
+          gap: 0.5rem;
+          margin-top: 1rem;
+          padding: 0.75rem;
+          background-color: rgba(255, 255, 255, 0.5);
           border-radius: 4px;
           cursor: pointer;
-          font-size: 0.875rem;
-          font-weight: 500;
           transition: background-color 0.15s;
         }
 
-        .proceed-button:hover {
-          background-color: #c82333;
+        .acknowledgment-checkbox:hover {
+          background-color: rgba(255, 255, 255, 0.8);
         }
 
-        .cancel-button {
-          padding: 0.5rem 1rem;
-          background-color: #6c757d;
-          color: white;
-          border: none;
-          border-radius: 4px;
+        .acknowledgment-checkbox input[type="checkbox"] {
+          width: 1.25rem;
+          height: 1.25rem;
           cursor: pointer;
-          font-size: 0.875rem;
-          font-weight: 500;
-          transition: background-color 0.15s;
+          flex-shrink: 0;
         }
 
-        .cancel-button:hover {
-          background-color: #5a6268;
+        .acknowledgment-checkbox span {
+          color: #856404;
+          font-size: 0.875rem;
+          user-select: none;
         }
       `}</style>
     </div>

@@ -130,14 +130,8 @@ export const Step2TargetSelection: React.FC<Step2Props> = ({
     });
   }, [state.targetOptions, onOptionsChanged]);
 
-  const handleProceedWithConflicts = useCallback(() => {
-    setUserAcknowledgedConflicts(true);
-  }, []);
-
-  const handleCancelConflicts = useCallback(() => {
-    // Reset target directory selection
-    setUserAcknowledgedConflicts(false);
-    // User will need to select a different directory
+  const handleConflictAcknowledgment = useCallback((acknowledged: boolean) => {
+    setUserAcknowledgedConflicts(acknowledged);
   }, []);
 
   // Determine if user can proceed to next step
@@ -192,8 +186,8 @@ export const Step2TargetSelection: React.FC<Step2Props> = ({
           <ConflictWarning
             conflicts={conflictResult.conflicts}
             totalFiles={conflictResult.totalFiles}
-            onProceed={handleProceedWithConflicts}
-            onCancel={handleCancelConflicts}
+            acknowledged={userAcknowledgedConflicts}
+            onAcknowledgeChange={handleConflictAcknowledgment}
           />
         )}
 
