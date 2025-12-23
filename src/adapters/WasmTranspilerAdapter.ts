@@ -186,17 +186,31 @@ export class WasmTranspilerAdapter implements ITranspiler {
         diagnosticsCount: result.diagnostics?.length || 0
       });
 
+      // Convert diagnostics from Emscripten vector to JS array
+      const diagnostics: Array<{line: number; column: number; message: string; severity: string}> = [];
+      if (result.diagnostics && typeof result.diagnostics === 'object') {
+        // Emscripten vector has size() and get(index) methods
+        const diagVec = result.diagnostics as any;
+        if (typeof diagVec.size === 'function') {
+          const size = diagVec.size();
+          for (let i = 0; i < size; i++) {
+            const d = diagVec.get(i);
+            diagnostics.push({
+              line: d.line,
+              column: d.column,
+              message: d.message,
+              severity: d.severity as 'error' | 'warning' | 'note'
+            });
+          }
+        }
+      }
+
       return {
         success: result.success,
         cCode: result.c,
         hCode: result.h,
         acslCode: result.acsl,
-        diagnostics: result.diagnostics?.map(d => ({
-          line: d.line,
-          column: d.column,
-          message: d.message,
-          severity: d.severity
-        })) || [],
+        diagnostics,
         sourcePath: options?.sourcePath
       };
     } catch (error) {
