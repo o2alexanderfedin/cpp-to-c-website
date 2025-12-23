@@ -136,7 +136,14 @@ export class WasmTranspilerAdapter implements ITranspiler {
           axiomatics: false,
           ghostCode: false,
           behaviors: true
-        } : undefined,
+        } : {
+          // WASM requires acsl field to be present, not undefined
+          statements: false,
+          typeInvariants: false,
+          axiomatics: false,
+          ghostCode: false,
+          behaviors: false
+        },
         optimize: false,
         cppStandard: 17 // Default C++ standard
       };
