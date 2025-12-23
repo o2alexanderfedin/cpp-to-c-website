@@ -12,4 +12,11 @@ export default defineConfig({
   build: {
     inlineStylesheets: 'auto',
   },
+  vite: {
+    build: {
+      rollupOptions: {
+        external: ['/wasm/libclang.mjs', '/wasm/clang-headers.mjs']
+      }
+    }
+  }
 });

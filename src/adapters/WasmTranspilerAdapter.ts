@@ -1,11 +1,11 @@
 /**
  * WasmTranspilerAdapter - WebAssembly-Based Transpiler Adapter
  *
- * Implements ITranspiler interface by loading and using the actual WASM module.
+ * Implements ITranspiler interface using libclang.wasm for real C++ parsing.
  * NO BACKEND - transpilation runs entirely in the browser!
  *
  * Following SOLID principles:
- * - Single Responsibility: WASM module loading and transpilation only
+ * - Single Responsibility: WASM-based transpilation only
  * - Open/Closed: Can extend with caching without modifying core
  * - Liskov Substitution: Substitutable for any ITranspiler implementation
  * - Interface Segregation: Implements only ITranspiler methods
@@ -14,62 +14,16 @@
 
 import type { ITranspiler } from '../core/interfaces/ITranspiler';
 import type { TranspileOptions, TranspileResult, ValidationResult } from '../core/interfaces/types';
-
-/**
- * Extended WASM types with header field support (Phase 28)
- * TODO: Update @hupyy/cpptoc-wasm types to include h field
- */
-interface WasmTranspileResult {
-  success: boolean;
-  c: string;
-  h: string;
-  acsl: string;
-  diagnostics: Array<{
-    line: number;
-    column: number;
-    message: string;
-    severity: 'error' | 'warning' | 'note';
-  }>;
-}
-
-interface WasmTranspileOptions {
-  acsl?: {
-    statements?: boolean;
-    typeInvariants?: boolean;
-    axiomatics?: boolean;
-    ghostCode?: boolean;
-    behaviors?: boolean;
-  };
-  target?: 'c89' | 'c99' | 'c11' | 'c17';
-  optimize?: boolean;
-}
-
-interface WasmTranspilerInstance {
-  transpile(code: string, options: WasmTranspileOptions): WasmTranspileResult;
-  getVersion(): string;
-  delete(): void;
-}
-
-interface WasmModule {
-  Transpiler: new () => WasmTranspilerInstance;
-}
-
-interface CreateModuleOptions {
-  locateFile?: (path: string, prefix?: string) => string;
-  onRuntimeInitialized?: () => void;
-}
-
-type CreateCppToCModule = (options?: CreateModuleOptions) => Promise<WasmModule>;
+import { SimpleTranspiler } from '../lib/simple-transpiler';
 
 /**
  * WebAssembly-based transpiler adapter
  *
- * Loads the actual WASM module and runs transpilation in the browser.
+ * Uses libclang.wasm for real C++ parsing and runs transpilation in the browser.
  * NO HTTP calls, NO backend dependency!
  */
 export class WasmTranspilerAdapter implements ITranspiler {
-  private module: WasmModule | null = null;
-  private transpiler: WasmTranspilerInstance | null = null;
+  private transpiler: SimpleTranspiler | null = null;
   private initPromise: Promise<void> | null = null;
 
   /**
@@ -78,7 +32,7 @@ export class WasmTranspilerAdapter implements ITranspiler {
    * Module is lazy-loaded on first transpile() call.
    */
   constructor() {
-    console.log('✅ WasmTranspilerAdapter initializing (WASM module will load on first use)');
+    console.log('✅ WasmTranspilerAdapter initializing (libclang.wasm will load on first use)');
   }
 
   /**
@@ -88,7 +42,7 @@ export class WasmTranspilerAdapter implements ITranspiler {
    */
   private async initialize(): Promise<void> {
     // Already initialized
-    if (this.module && this.transpiler) {
+    if (this.transpiler) {
       return;
     }
 
@@ -101,35 +55,15 @@ export class WasmTranspilerAdapter implements ITranspiler {
     // Start initialization
     this.initPromise = (async () => {
       try {
-        console.log('⏳ Loading WASM module from @hupyy/cpptoc-wasm/full...');
+        console.log('⏳ Loading libclang.wasm transpiler...');
 
-        // Dynamically import the WASM module
-        const createCppToC = (await import('@hupyy/cpptoc-wasm/full')).default as CreateCppToCModule;
+        // Create and initialize transpiler
+        this.transpiler = new SimpleTranspiler();
+        await this.transpiler.initialize();
 
-        // Create WASM module instance with locateFile to fix 404 errors
-        // WASM files are served from public/wasm/ directory
-        this.module = await createCppToC({
-          locateFile: (path: string) => {
-            // Direct WASM file requests to public/wasm/ directory
-            if (path.endsWith('.wasm')) {
-              const baseUrl = import.meta.env.BASE_URL || '/';
-              // Ensure proper slash handling - baseUrl may or may not end with /
-              const normalizedBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
-              const wasmPath = `${normalizedBase}wasm/${path}`;
-              console.log(`📍 Locating WASM file: ${path} → ${wasmPath}`);
-              return wasmPath;
-            }
-            return path;
-          }
-        });
-
-        // Create transpiler instance
-        this.transpiler = new this.module.Transpiler();
-
-        console.log('✅ WASM module loaded successfully');
-        console.log(`📦 Transpiler version: ${this.transpiler.getVersion()}`);
+        console.log('✅ libclang.wasm transpiler ready');
       } catch (error) {
-        console.error('❌ Failed to load WASM module:', error);
+        console.error('❌ Failed to load transpiler:', error);
         this.initPromise = null; // Allow retry
         throw new Error(
           `Failed to initialize WASM transpiler: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -141,7 +75,7 @@ export class WasmTranspilerAdapter implements ITranspiler {
   }
 
   /**
-   * Transpile C++ source code to C using WASM module
+   * Transpile C++ source code to C using libclang.wasm
    *
    * @param source - C++ source code
    * @param options - Transpilation options
@@ -156,29 +90,19 @@ export class WasmTranspilerAdapter implements ITranspiler {
         throw new Error('WASM transpiler not initialized');
       }
 
-      // Map options to WASM format
-      const wasmOptions: WasmTranspileOptions = {
-        acsl: options?.acsl || {
-          statements: false,
-          typeInvariants: false,
-          axiomatics: false,
-          ghostCode: false,
-          behaviors: false
-        },
-        target: (options?.target as 'c89' | 'c99' | 'c11' | 'c17') || 'c99',
-        optimize: options?.optimize || false
-      };
-
-      console.log('🔄 Transpiling with WASM module...', {
+      console.log('🔄 Transpiling with libclang.wasm...', {
         sourceLength: source.length,
-        target: wasmOptions.target,
-        acslEnabled: Object.values(wasmOptions.acsl || {}).some(v => v)
+        target: options?.target || 'c99'
       });
 
-      // Call REAL WASM transpiler!
-      const result = this.transpiler.transpile(source, wasmOptions);
+      // Call transpiler
+      const result = await this.transpiler.transpile(source, {
+        acsl: options?.acsl?.statements || options?.acsl?.typeInvariants || options?.acsl?.axiomatics,
+        target: options?.target as 'c89' | 'c99' | 'c11' | 'c17',
+        optimize: options?.optimize
+      });
 
-      console.log('✅ WASM transpilation complete', {
+      console.log('✅ libclang.wasm transpilation complete', {
         success: result.success,
         cLength: result.c?.length || 0,
         hLength: result.h?.length || 0,
@@ -186,24 +110,13 @@ export class WasmTranspilerAdapter implements ITranspiler {
         diagnosticsCount: result.diagnostics?.length || 0
       });
 
-      // Convert diagnostics from Emscripten vector to JS array
-      const diagnostics: Array<{line: number; column: number; message: string; severity: string}> = [];
-      if (result.diagnostics && typeof result.diagnostics === 'object') {
-        // Emscripten vector has size() and get(index) methods
-        const diagVec = result.diagnostics as any;
-        if (typeof diagVec.size === 'function') {
-          const size = diagVec.size();
-          for (let i = 0; i < size; i++) {
-            const d = diagVec.get(i);
-            diagnostics.push({
-              line: d.line,
-              column: d.column,
-              message: d.message,
-              severity: d.severity as 'error' | 'warning' | 'note'
-            });
-          }
-        }
-      }
+      // Map result to expected format
+      const diagnostics = result.diagnostics.map(d => ({
+        line: d.line || 0,
+        column: d.column || 0,
+        message: d.message,
+        severity: d.severity
+      }));
 
       return {
         success: result.success,
@@ -268,10 +181,9 @@ export class WasmTranspilerAdapter implements ITranspiler {
   dispose(): void {
     if (this.transpiler) {
       console.log('🧹 Disposing WASM transpiler instance');
-      this.transpiler.delete();
+      this.transpiler.dispose();
       this.transpiler = null;
     }
-    this.module = null;
     this.initPromise = null;
   }
 }
