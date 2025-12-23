@@ -67,6 +67,7 @@ export class TranspilationController {
   private pauseStartTime: number = 0;
   private totalPausedTime: number = 0;
   private executionMode: ExecutionMode | null = null;
+  private sourceFiles: FileInfo[] = [];
 
   constructor() {
     // Mode will be determined on first transpilation
@@ -155,6 +156,26 @@ export class TranspilationController {
   }
 
   /**
+   * Get current progress (used for parallel mode events)
+   */
+  private getCurrentProgress(): TranspilationEvent['progress'] {
+    const total = this.sourceFiles.length;
+    const current = this.completedFiles;
+    return {
+      current,
+      total,
+      percentage: total > 0 ? (current / total) * 100 : 0
+    };
+  }
+
+  /**
+   * Get current metrics (used for parallel mode events)
+   */
+  private getCurrentMetrics(): TranspilationEvent['metrics'] {
+    return this.calculateMetrics(this.completedFiles, this.sourceFiles.length);
+  }
+
+  /**
    * Pause transpilation
    */
   pause(): void {
@@ -205,6 +226,7 @@ export class TranspilationController {
     await this.initializeExecutionMode();
 
     // Reset state including pause tracking
+    this.sourceFiles = sourceFiles;
     this.abortController = new AbortController();
     this.isPaused = false;
     this.startTime = Date.now();
@@ -324,7 +346,9 @@ export class TranspilationController {
           type: TranspilationEventType.FILE_COMPLETED,
           filePath,
           fileName: targetFileName,
-          result
+          result,
+          progress: this.getCurrentProgress(),
+          metrics: this.getCurrentMetrics()
         });
       } else {
         this.emit({
@@ -332,7 +356,9 @@ export class TranspilationController {
           filePath,
           fileName: targetFileName,
           result,
-          error: result.error
+          error: result.error,
+          progress: this.getCurrentProgress(),
+          metrics: this.getCurrentMetrics()
         });
       }
     }
@@ -429,7 +455,13 @@ export class TranspilationController {
           type: TranspilationEventType.FILE_ERROR,
           filePath: file.path,
           fileName: file.name,
-          error: error instanceof Error ? error.message : String(error)
+          error: error instanceof Error ? error.message : String(error),
+          progress: {
+            current: this.completedFiles,
+            total: sourceFiles.length,
+            percentage: (this.completedFiles / sourceFiles.length) * 100
+          },
+          metrics: this.calculateMetrics(this.completedFiles, sourceFiles.length)
         });
       }
     }
