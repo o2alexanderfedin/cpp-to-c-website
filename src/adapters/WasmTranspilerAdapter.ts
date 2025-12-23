@@ -113,7 +113,9 @@ export class WasmTranspilerAdapter implements ITranspiler {
             // Direct WASM file requests to public/wasm/ directory
             if (path.endsWith('.wasm')) {
               const baseUrl = import.meta.env.BASE_URL || '/';
-              const wasmPath = `${baseUrl}wasm/${path}`;
+              // Ensure proper slash handling - baseUrl may or may not end with /
+              const normalizedBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+              const wasmPath = `${normalizedBase}wasm/${path}`;
               console.log(`📍 Locating WASM file: ${path} → ${wasmPath}`);
               return wasmPath;
             }
