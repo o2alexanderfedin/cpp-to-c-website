@@ -5,6 +5,17 @@
  */
 
 /**
+ * ACSL annotation options
+ */
+export interface ACSLOptions {
+  statements?: boolean;
+  typeInvariants?: boolean;
+  axiomatics?: boolean;
+  ghostCode?: boolean;
+  behaviors?: boolean;
+}
+
+/**
  * Options for transpilation
  */
 export interface TranspileOptions {
@@ -23,7 +34,32 @@ export interface TranspileOptions {
    * Target C standard version
    * @default 'c99'
    */
+  target?: 'c89' | 'c99' | 'c11' | 'c17';
+
+  /**
+   * @deprecated Use `target` instead
+   */
   targetStandard?: 'c89' | 'c99' | 'c11' | 'c17';
+
+  /**
+   * Optimization flag
+   */
+  optimize?: boolean;
+
+  /**
+   * ACSL options (detailed)
+   */
+  acsl?: ACSLOptions;
+}
+
+/**
+ * Diagnostic message
+ */
+export interface Diagnostic {
+  line: number;
+  column: number;
+  message: string;
+  severity: 'error' | 'warning' | 'info';
 }
 
 /**
@@ -46,14 +82,20 @@ export interface TranspileResult {
   hCode?: string;
 
   /**
+   * ACSL annotated code (if enabled)
+   */
+  acslCode?: string;
+
+  /**
    * Error message (if failed)
    */
   error?: string;
 
   /**
-   * Detailed diagnostics (warnings, notes)
+   * Detailed diagnostics (warnings, notes, errors)
+   * Can be either structured Diagnostic objects or simple strings for backward compatibility
    */
-  diagnostics?: string[];
+  diagnostics?: Diagnostic[] | string[];
 
   /**
    * Source file path (for error tracking)

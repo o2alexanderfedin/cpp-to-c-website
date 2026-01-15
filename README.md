@@ -6,10 +6,11 @@ This is the documentation and demonstration website for the C++ to C Transpiler,
 
 ## Technology Stack
 
-- **Framework**: Astro 4.x with React integration
+- **Framework**: Astro 5.x with React 19 integration
 - **TypeScript**: Strict mode enabled
+- **WASM Transpiler**: `@hupyy/cpptoc-wasm` - Real C++ to C transpilation in browser
 - **Deployment**: Vercel with COOP/COEP headers for WebAssembly support
-- **Code Editor**: CodeMirror 6 (Phase 3)
+- **Testing**: Vitest (unit tests) + Playwright (E2E tests)
 
 ## Project Structure
 
@@ -115,15 +116,22 @@ Or check the console logs on page load:
   - Basic routes created (/, /playground, /docs, /examples)
   - Responsive layout implemented
 
-- 🔄 **Phase 2: WebAssembly Integration** (Next)
-  - Compile transpiler to WebAssembly
-  - WASM loader implementation
-  - Transpiler JavaScript API
+- ✅ **Phase 2: WebAssembly Integration** (COMPLETE)
+  - ✅ Transpiler compiled to WebAssembly (`@hupyy/cpptoc-wasm`)
+  - ✅ WASM loader with lifecycle management (`src/lib/wasm/loader.ts`)
+  - ✅ React hooks for WASM state (`src/lib/wasm/hooks.ts`)
+  - ✅ Type-safe API wrapper (`src/lib/wasm/api.ts`)
+  - ✅ WasmTranspilerAdapter integration
+  - ✅ Worker pool support for parallel transpilation
 
-- ⏳ **Phase 3: Interactive Code Playground** (Upcoming)
-  - CodeMirror 6 integration
-  - Split-pane editor
-  - Real-time transpilation
+- ✅ **Phase 3: Interactive Code Playground** (COMPLETE)
+  - ✅ File System Access API integration
+  - ✅ Directory selection and scanning
+  - ✅ Multi-file transpilation with progress tracking
+  - ✅ Real-time error reporting
+  - ✅ Syntax highlighting
+  - ✅ Split-pane viewer for results
+  - ✅ Download/write-back support
 
 - ⏳ **Phase 4: Documentation Content** (Upcoming)
   - Migrate existing docs to MDX
@@ -173,12 +181,56 @@ git commit -m "chore: update website submodule"
 git push
 ```
 
+## WASM Integration
+
+The playground uses the `@hupyy/cpptoc-wasm` package for client-side transpilation. No backend required!
+
+### Architecture
+
+```
+Browser FileSystemHandle → WasmTranspilerAdapter → @hupyy/cpptoc-wasm → C Code
+                               ↓
+                        WorkerPoolController (parallel execution)
+```
+
+### Key Features
+
+- **Lazy Loading**: WASM module loads on first use (not on page load)
+- **Singleton Pattern**: One module instance shared across the app
+- **Worker Pools**: Parallel transpilation using Web Workers
+- **Type Safety**: Full TypeScript support with discriminated unions
+- **Result Pattern**: No exceptions for expected errors
+
+### Usage Example
+
+```tsx
+import { useTranspiler } from '@/lib/wasm';
+
+function MyComponent() {
+  const { instance, isReady, error } = useTranspiler();
+
+  if (!isReady) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  const handleTranspile = () => {
+    const result = instance!.transpile(code, { target: 'c99' });
+    console.log(result);
+  };
+
+  return <button onClick={handleTranspile}>Transpile</button>;
+}
+```
+
+See `src/lib/wasm/README.md` for detailed documentation.
+
 ## Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build locally
 - `npm run astro` - Run Astro CLI commands
+- `npm run test` - Run unit tests
+- `npm run test:e2e` - Run E2E tests with Playwright
 
 ## Browser Requirements
 

@@ -17,6 +17,15 @@ export default defineConfig({
       rollupOptions: {
         external: ['/wasm/libclang.mjs', '/wasm/clang-headers.mjs']
       }
+    },
+    // Optimize WASM handling
+    optimizeDeps: {
+      exclude: ['@hupyy/cpptoc-wasm']
+    },
+    // Support for WASM files
+    assetsInclude: ['**/*.wasm'],
+    worker: {
+      format: 'es'
     }
   }
 });
