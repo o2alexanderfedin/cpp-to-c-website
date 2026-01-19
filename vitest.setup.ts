@@ -17,7 +17,11 @@ class MockWorker {
       if (message.type === 'INIT') {
         this.simulateMessage({ type: 'READY' });
       } else if (message.type === 'TRANSPILE') {
-        // Simulate successful transpilation
+        // Check if source contains obvious invalid syntax
+        const isInvalid = message.source.includes('@#$%') ||
+                         message.source.includes('this is not valid');
+
+        // Simulate progress
         this.simulateMessage({
           type: 'PROGRESS',
           taskId: message.taskId,
@@ -26,15 +30,26 @@ class MockWorker {
         });
 
         setTimeout(() => {
-          this.simulateMessage({
-            type: 'SUCCESS',
-            taskId: message.taskId,
-            result: {
-              success: true,
-              cCode: '/* Transpiled C code */',
-              sourcePath: 'test.cpp'
-            }
-          });
+          if (isInvalid) {
+            // Simulate transpilation error
+            this.simulateMessage({
+              type: 'ERROR',
+              taskId: message.taskId,
+              error: 'Transpilation failed: invalid syntax',
+              stack: undefined
+            });
+          } else {
+            // Simulate successful transpilation
+            this.simulateMessage({
+              type: 'SUCCESS',
+              taskId: message.taskId,
+              result: {
+                success: true,
+                cCode: '/* Transpiled C code */',
+                sourcePath: 'test.cpp'
+              }
+            });
+          }
         }, 10);
       } else if (message.type === 'CANCEL') {
         // Cancellation doesn't send a response

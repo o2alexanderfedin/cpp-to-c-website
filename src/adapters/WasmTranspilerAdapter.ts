@@ -187,6 +187,14 @@ export class WasmTranspilerAdapter implements ITranspiler {
       // Transpile and check for errors
       const result = await this.transpile(source);
 
+      // If transpile had a fatal error (not diagnostic), return invalid
+      if (result.error) {
+        return {
+          valid: false,
+          errors: [result.error]
+        };
+      }
+
       // Helper to check if diagnostic is a Diagnostic object (not string)
       const isDiagnosticObject = (d: unknown): d is import('../core/interfaces/types').Diagnostic => {
         return typeof d === 'object' && d !== null && 'severity' in d;

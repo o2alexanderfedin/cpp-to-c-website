@@ -98,6 +98,18 @@ async function transpile(
         return; // Don't send result if canceled
       }
 
+      // Check if transpilation failed
+      if (!result.success) {
+        // Send error response
+        postResponse({
+          type: 'ERROR',
+          taskId,
+          error: result.error || 'Transpilation failed',
+          stack: undefined
+        });
+        return;
+      }
+
       // Send success response
       postResponse({
         type: 'SUCCESS',

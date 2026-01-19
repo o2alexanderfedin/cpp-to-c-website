@@ -307,18 +307,8 @@ export class TranspilationController {
     // Set up overall progress tracking
     this.workerPool.onOverallProgress((event) => {
       this.completedFiles = event.completed;
-
-      // Emit progress update for real-time UI updates during parallel transpilation
-      // This fires as files complete, providing accurate progress during execution
-      this.emit({
-        type: TranspilationEventType.FILE_COMPLETED,
-        progress: {
-          current: event.completed,
-          total: event.total,
-          percentage: event.percentage
-        },
-        metrics: this.calculateMetrics(event.completed, event.total)
-      });
+      // Note: We don't emit FILE_COMPLETED here because we emit it
+      // when writing each file to disk (after transpilation results are ready)
     });
 
     // Set up per-file progress tracking

@@ -13,6 +13,16 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { FileSystemAccessAdapter } from './FileSystemAccessAdapter';
 import type { IFileSystem } from '../core/interfaces/IFileSystem';
 
+/**
+ * Helper function to create a mock File object with text() method
+ */
+function createMockFile(content: string, name: string, options?: FilePropertyBag): File {
+  const file = new File([content], name, options);
+  // Add text() method to mock File
+  (file as any).text = vi.fn().mockResolvedValue(content);
+  return file;
+}
+
 describe('FileSystemAccessAdapter', () => {
   describe('IFileSystem contract compliance', () => {
     let adapter: IFileSystem;
@@ -39,7 +49,7 @@ describe('FileSystemAccessAdapter', () => {
       adapter = new FileSystemAccessAdapter();
 
       // Mock File object
-      mockFile = new File(['test content'], 'test.txt', { type: 'text/plain' });
+      mockFile = createMockFile('test content', 'test.txt', { type: 'text/plain' });
 
       // Mock FileSystemFileHandle
       mockFileHandle = {
@@ -75,7 +85,7 @@ describe('FileSystemAccessAdapter', () => {
 
     it('should handle large files', async () => {
       const largeContent = 'x'.repeat(10000);
-      mockFile = new File([largeContent], 'large.txt');
+      mockFile = createMockFile(largeContent, 'large.txt');
       mockFileHandle.getFile = vi.fn().mockResolvedValue(mockFile);
       adapter.setFileHandle('/large.txt', mockFileHandle);
 
@@ -302,7 +312,7 @@ describe('FileSystemAccessAdapter', () => {
       mockFileHandle = {
         kind: 'file',
         name: 'test.txt',
-        getFile: vi.fn().mockResolvedValue(new File(['content'], 'test.txt')),
+        getFile: vi.fn().mockResolvedValue(createMockFile('content', 'test.txt')),
         createWritable: vi.fn(),
         queryPermission: vi.fn(),
         requestPermission: vi.fn(),
@@ -365,7 +375,7 @@ describe('FileSystemAccessAdapter', () => {
       mockFileHandle = {
         kind: 'file',
         name: 'test.txt',
-        getFile: vi.fn().mockResolvedValue(new File(['content'], 'test.txt')),
+        getFile: vi.fn().mockResolvedValue(createMockFile('content', 'test.txt')),
       } as unknown as FileSystemFileHandle;
     });
 
@@ -438,7 +448,7 @@ describe('FileSystemAccessAdapter', () => {
       const mockFileHandle = {
         kind: 'file',
         name: 'test-file_v2.0.txt',
-        getFile: vi.fn().mockResolvedValue(new File(['content'], 'test-file_v2.0.txt')),
+        getFile: vi.fn().mockResolvedValue(createMockFile('content', 'test-file_v2.0.txt')),
       } as unknown as FileSystemFileHandle;
 
       adapter.setFileHandle('/test-file_v2.0.txt', mockFileHandle);
@@ -452,7 +462,7 @@ describe('FileSystemAccessAdapter', () => {
       const mockFileHandle = {
         kind: 'file',
         name: 'файл.txt',
-        getFile: vi.fn().mockResolvedValue(new File(['content'], 'файл.txt')),
+        getFile: vi.fn().mockResolvedValue(createMockFile('content', 'файл.txt')),
       } as unknown as FileSystemFileHandle;
 
       adapter.setFileHandle('/файл.txt', mockFileHandle);
@@ -467,7 +477,7 @@ describe('FileSystemAccessAdapter', () => {
       const mockFileHandle = {
         kind: 'file',
         name: 'a'.repeat(255),
-        getFile: vi.fn().mockResolvedValue(new File(['content'], 'file.txt')),
+        getFile: vi.fn().mockResolvedValue(createMockFile('content', 'file.txt')),
       } as unknown as FileSystemFileHandle;
 
       adapter.setFileHandle(longPath, mockFileHandle);

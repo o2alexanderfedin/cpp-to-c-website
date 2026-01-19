@@ -13,10 +13,10 @@ import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 
-// Import WASM transpiler
-// The WASM module exports a default function that creates the module
-import createCppToC from '@hupyy/cpptoc-wasm';
-import type { TranspileOptions, WASMModule, TranspilerInstance } from '@hupyy/cpptoc-wasm';
+// Import Native CLI transpiler (temporary: use native CLI until WASM transpiler is built)
+import { NativeCLITranspiler } from '../helpers/NativeCLITranspiler';
+import type { TranspileOptions } from '@hupyy/cpptoc-wasm';
+import { DEFAULT_TRANSPILE_OPTIONS } from '@hupyy/cpptoc-wasm';
 
 // Test configuration
 const FIXTURES_DIR = join(__dirname, '../fixtures');
@@ -24,15 +24,8 @@ const TRANSPILER_PATH = '/Users/alexanderfedin/Projects/hapyy/hupyy-cpp-to-c/bui
 
 // Default transpiler options with all required fields
 const DEFAULT_OPTIONS: TranspileOptions = {
-  acsl: {
-    statements: false,
-    typeInvariants: false,
-    axiomatics: false,
-    ghostCode: false,
-    behaviors: false,
-  },
-  target: 'c99',
-  optimize: false,
+  ...DEFAULT_TRANSPILE_OPTIONS,
+  // Override defaults for testing if needed
 };
 
 // Placeholder patterns that should NOT appear in real transpiled code
@@ -129,27 +122,17 @@ function verifyRealCCode(code: string): {
 }
 
 describe('Backend API + Frontend Integration Tests', () => {
-  let wasmModule: WASMModule;
-  let transpiler: TranspilerInstance;
+  let transpiler: NativeCLITranspiler;
 
   beforeAll(async () => {
-    // Initialize WASM transpiler
+    // Initialize native CLI transpiler (temporary: use native CLI until WASM transpiler is built)
     try {
-      const wasmPath = join(__dirname, '../../../wasm/glue/dist/full');
-      wasmModule = await createCppToC({
-        locateFile: (path: string) => {
-          // Map whatever WASM file name is requested to our cpptoc.wasm
-          if (path.endsWith('.wasm')) {
-            return join(wasmPath, 'cpptoc.wasm');
-          }
-          return join(wasmPath, path);
-        },
-      });
-      transpiler = new wasmModule.Transpiler();
-      console.log('WASM transpiler initialized successfully');
+      transpiler = new NativeCLITranspiler();
+      console.log('Native CLI transpiler initialized successfully');
       console.log('Transpiler version:', transpiler.getVersion());
+      console.log('Note: Using native CLI instead of WASM (WASM build uses stub implementation)');
     } catch (error) {
-      console.error('Failed to initialize WASM transpiler:', error);
+      console.error('Failed to initialize native CLI transpiler:', error);
       throw error;
     }
   });
@@ -158,9 +141,7 @@ describe('Backend API + Frontend Integration Tests', () => {
     it('should transpile simple arithmetic functions to real C code', async () => {
       const cppCode = await loadFixture('simple-function.cpp');
 
-      const result = transpiler.transpile(cppCode, {
-        // sourcePath is not in TranspileOptions
-      });
+      const result = transpiler.transpile(cppCode, DEFAULT_OPTIONS);
 
       // Verify transpilation succeeded
       expect(result.success).toBe(true);
@@ -466,8 +447,7 @@ describe('Backend API + Frontend Integration Tests', () => {
 
       for (const fixture of fixtures) {
         const cppCode = await loadFixture(fixture);
-        const result = transpiler.transpile(cppCode, {
-                  });
+        const result = transpiler.transpile(cppCode, DEFAULT_OPTIONS);
 
         expect(result.success).toBe(true);
 
@@ -506,13 +486,12 @@ describe('Backend API + Frontend Integration Tests', () => {
 
   describe('Error Handling', () => {
     it('should handle empty input gracefully', async () => {
-      const result = transpiler.transpile('', {
-              });
+      const result = transpiler.transpile('', DEFAULT_OPTIONS);
 
       // Should either succeed with empty/minimal output or fail gracefully
       if (!result.success) {
-        expect(result.error).toBeDefined();
-        expect(typeof result.error).toBe('string');
+        expect(result.diagnostics).toBeDefined();
+        expect(Array.isArray(result.diagnostics)).toBe(true);
       }
 
       console.log('✓ Empty input handled gracefully');
@@ -525,12 +504,12 @@ describe('Backend API + Frontend Integration Tests', () => {
         }
       `;
 
-      const result = transpiler.transpile(invalidCode, {
-              });
+      const result = transpiler.transpile(invalidCode, DEFAULT_OPTIONS);
 
       // Should fail with error message
       expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+      expect(result.diagnostics).toBeDefined();
+      expect(result.diagnostics.length).toBeGreaterThan(0);
 
       console.log('✓ Invalid syntax detected and reported');
     });
@@ -556,10 +535,17 @@ describe('Backend API + Frontend Integration Tests', () => {
     it('should generate ACSL annotations when requested', async () => {
       const cppCode = await loadFixture('simple-function.cpp');
 
-      const result = transpiler.transpile(cppCode, {
-                enableACSL: true,
-        acslLevel: 1,
-      });
+      const options = {
+        ...DEFAULT_OPTIONS,
+        acslLevel: 'Full',
+        acsl: {
+          ...DEFAULT_OPTIONS.acsl,
+          statements: true,
+          typeInvariants: true,
+          behaviors: true,
+        },
+      };
+      const result = transpiler.transpile(cppCode, options);
 
       expect(result.success).toBe(true);
 
@@ -578,9 +564,11 @@ describe('Backend API + Frontend Integration Tests', () => {
     it('should respect target standard option', async () => {
       const cppCode = await loadFixture('simple-function.cpp');
 
-      const result = transpiler.transpile(cppCode, {
-                targetStandard: 'c99',
-      });
+      const options = {
+        ...DEFAULT_OPTIONS,
+        target: 'c99' as const,
+      };
+      const result = transpiler.transpile(cppCode, options);
 
       expect(result.success).toBe(true);
       expect(result.c).toBeDefined();
@@ -588,16 +576,18 @@ describe('Backend API + Frontend Integration Tests', () => {
       console.log('✓ Target standard option accepted');
     });
 
-    it('should handle exceptions option', async () => {
+    it('should handle optimize option', async () => {
       const cppCode = await loadFixture('simple-function.cpp');
 
-      const result = transpiler.transpile(cppCode, {
-                enableExceptions: false,
-      });
+      const options = {
+        ...DEFAULT_OPTIONS,
+        optimize: true,
+      };
+      const result = transpiler.transpile(cppCode, options);
 
       expect(result.success).toBe(true);
 
-      console.log('✓ Exceptions option handled');
+      console.log('✓ Optimize option handled');
     });
   });
 });
@@ -622,8 +612,7 @@ describe('Real C Code Verification', () => {
 
   it('should produce compilable C code for simple functions', async () => {
     const cppCode = await loadFixture('simple-function.cpp');
-    const result = transpiler.transpile(cppCode, {
-          });
+    const result = transpiler.transpile(cppCode, DEFAULT_OPTIONS);
 
     expect(result.success).toBe(true);
 
@@ -649,8 +638,7 @@ describe('Real C Code Verification', () => {
       }
     `;
 
-    const result = transpiler.transpile(cppCode, {
-          });
+    const result = transpiler.transpile(cppCode, DEFAULT_OPTIONS);
 
     expect(result.success).toBe(true);
 

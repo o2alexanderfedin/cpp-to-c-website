@@ -16,6 +16,12 @@ export { ConflictWarning } from './ConflictWarning';
 export { DownloadOptions } from './DownloadOptions';
 export { ErrorSummary } from './ErrorSummary';
 
+// Re-export from parent (for convenience)
+export { IDBFSPlayground } from '../IDBFSPlayground';
+export { ZipUpload } from '../ZipUpload';
+export { TranspilerOptionsComponent } from '../TranspilerOptions';
+export { ConsoleOutput } from '../ConsoleOutput';
+
 // Controllers
 export { TranspilationController, TranspilationEventType } from './controllers/TranspilationController';
 

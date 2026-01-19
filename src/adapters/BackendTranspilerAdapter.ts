@@ -155,12 +155,12 @@ export class BackendTranspilerAdapter implements ITranspiler {
    * @returns User-friendly error message
    */
   private mapErrorToMessage(error: unknown): string {
-    if (error instanceof Error) {
-      // Handle abort/timeout errors
-      if (error.name === 'AbortError') {
-        return 'Request timeout';
-      }
+    // Handle DOMException (which may or may not extend Error in all environments)
+    if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
+      return 'Request timeout';
+    }
 
+    if (error instanceof Error) {
       // Handle timeout in message
       if (error.message.toLowerCase().includes('timeout')) {
         return `Request timeout: ${error.message}`;
