@@ -39,6 +39,12 @@ export default defineConfig({
     },
     // Support for WASM files
     assetsInclude: ['**/*.wasm'],
+    // Serve WASM files from outside website directory
+    server: {
+      fs: {
+        allow: ['..']  // Allow serving files from parent directory (wasm/glue/dist)
+      }
+    },
     worker: {
       format: 'es',
       rollupOptions: {

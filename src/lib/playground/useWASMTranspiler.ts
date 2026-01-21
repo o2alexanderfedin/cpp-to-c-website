@@ -96,13 +96,11 @@ export function useWASMTranspiler(): UseWASMTranspilerReturn {
         setState(prev => ({ ...prev, status: 'loading' }));
         addLog('Loading WASM transpiler module...', 'info');
 
-        // Load WASM from appropriate source
-        // In dev: Load from local WASM build directory
-        // In production: Load from deployed public/wasm directory
-        const wasmModulePath = import.meta.env.DEV
-          ? '../../../wasm/glue/dist/cpptoc.js'
-          : '/cpp-to-c-website/wasm/cpptoc.js';
-        const createCppToC = (await import(/* @vite-ignore */ wasmModulePath)).default as WASMModuleFactory;
+        // Load WASM from npm package (configured in website/package.json as @hupyy/cpptoc-wasm)
+        // The package is linked to ../wasm/glue which contains the built WASM module
+        // In dev: Uses the linked package from wasm/glue/dist
+        // In production: Will be bundled or loaded from public/wasm
+        const { default: createCppToC } = await import('@hupyy/cpptoc-wasm');
 
         const moduleInstance = await createCppToC({
           noInitialRun: true,
