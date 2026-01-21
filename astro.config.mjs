@@ -3,6 +3,20 @@ import { defineConfig } from 'astro/config';
 
 import react from '@astrojs/react';
 
+// Vite plugin to set COOP/COEP headers for dev server
+function crossOriginIsolationHeaders() {
+  return {
+    name: 'cross-origin-isolation-headers',
+    configureServer(server) {
+      server.middlewares.use((_req, res, next) => {
+        res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+        res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
+        next();
+      });
+    }
+  };
+}
+
 // https://astro.build/config
 export default defineConfig({
   site: 'https://o2alexanderfedin.github.io',
@@ -13,6 +27,7 @@ export default defineConfig({
     inlineStylesheets: 'auto',
   },
   vite: {
+    plugins: [crossOriginIsolationHeaders()],
     build: {
       rollupOptions: {
         external: ['/wasm/libclang.mjs', '/wasm/clang-headers.mjs']

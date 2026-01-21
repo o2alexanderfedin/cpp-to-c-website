@@ -41,8 +41,14 @@ export const OUTPUT_DIR = '/project/output';
  * @throws Error if IDBFS is not available or mount fails
  */
 export async function mountIDBFS(module: WASMModule): Promise<void> {
+  // Check if FS.filesystems exists and has IDBFS
+  // Note: Emscripten with -lidbfs.js should provide this, but the structure might vary
+  if (!module.FS || !module.FS.filesystems) {
+    throw new Error('Filesystem API not available in WASM module (FS.filesystems is undefined). Ensure WASM was built with FORCE_FILESYSTEM=1');
+  }
+
   if (!module.FS.filesystems.IDBFS) {
-    throw new Error('IDBFS filesystem not available in WASM module');
+    throw new Error('IDBFS filesystem not available in WASM module. Ensure WASM was built with -lidbfs.js');
   }
 
   try {
