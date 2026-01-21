@@ -22,7 +22,7 @@ import { ZipUpload } from './ZipUpload';
 import { TranspilerOptionsComponent } from './TranspilerOptions';
 import { ConsoleOutput } from './ConsoleOutput';
 import { useWASMTranspiler } from '../../lib/playground/useWASMTranspiler';
-import type { TranspileResult } from '../../lib/playground/wasmTranspiler';
+import type { TranspileResult, TranspileOptions } from '../../lib/playground/wasmTranspiler';
 
 /**
  * IDBFS Playground Component
@@ -41,6 +41,14 @@ export const IDBFSPlayground: React.FC = () => {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [transpileResult, setTranspileResult] = useState<TranspileResult | null>(null);
+  const [transpileOptions, setTranspileOptions] = useState<TranspileOptions>({
+    usePragmaOnce: true,
+    enableExceptions: true,
+    enableRTTI: true,
+    cppStandard: 'c++17',
+    acslLevel: 'Basic',
+    acslOutputMode: 'Inline',
+  });
 
   /**
    * Handle ZIP file selection and transpilation
@@ -50,12 +58,12 @@ export const IDBFSPlayground: React.FC = () => {
     setTranspileResult(null);
 
     try {
-      const result = await transpileZip(file);
+      const result = await transpileZip(file, transpileOptions);
       setTranspileResult(result);
     } catch (error) {
       console.error('Transpilation failed:', error);
     }
-  }, [transpileZip]);
+  }, [transpileZip, transpileOptions]);
 
   /**
    * Handle download
@@ -137,7 +145,16 @@ export const IDBFSPlayground: React.FC = () => {
         )}
       </section>
 
-      {/* Section 2: Actions */}
+      {/* Section 2: Transpiler Options */}
+      <section className="playground-section">
+        <h2 className="section-title">⚙️ Transpiler Options</h2>
+        <TranspilerOptionsComponent
+          options={transpileOptions}
+          onChange={setTranspileOptions}
+        />
+      </section>
+
+      {/* Section 3: Actions */}
       <section className="playground-section">
         <h2 className="section-title">▶️ Actions</h2>
         <div className="action-buttons">
