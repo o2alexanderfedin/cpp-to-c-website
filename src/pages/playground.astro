@@ -1,6 +1,6 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
-import { PlaygroundWizard, IDBFSPlayground } from '../components/playground/wizard';
+import { IDBFSPlayground } from '../components/playground/wizard';
 import { getBrowserCompatibilityMessage } from '../lib/playground/setup';
 
 // Get browser compatibility information for SSR (will be updated client-side)
@@ -26,38 +26,8 @@ const compatibilityMessage = getBrowserCompatibilityMessage(3); // Default to ti
       </div>
     </div>
 
-    <!-- Mode Switcher -->
-    <div class="mode-switcher-container">
-      <div class="container">
-        <div class="mode-switcher">
-          <button
-            id="mode-directory"
-            class="mode-button active"
-            data-mode="directory"
-            aria-pressed="true"
-          >
-            Directory Upload
-            <span class="mode-description">File System Access API (Tier 1)</span>
-          </button>
-          <button
-            id="mode-zip"
-            class="mode-button"
-            data-mode="zip"
-            aria-pressed="false"
-          >
-            ZIP Upload
-            <span class="mode-description">IDBFS / Browser-based (All Tiers)</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Playground Components (toggled by mode switcher) -->
-    <div id="playground-directory" class="playground-mode">
-      <PlaygroundWizard client:only="react" />
-    </div>
-
-    <div id="playground-zip" class="playground-mode" style="display: none;">
+    <!-- Playground Component -->
+    <div class="playground-container">
       <IDBFSPlayground client:only="react" />
     </div>
 
@@ -167,72 +137,8 @@ const compatibilityMessage = getBrowserCompatibilityMessage(3); // Default to ti
       margin: 2rem 0;
     }
 
-    .mode-switcher-container {
+    .playground-container {
       margin: 2rem 0;
-    }
-
-    .mode-switcher {
-      display: flex;
-      gap: 1rem;
-      background: white;
-      padding: 1rem;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-    }
-
-    .mode-button {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 1.25rem 1.5rem;
-      background: #f9fafb;
-      border: 2px solid #e5e7eb;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 1rem;
-      font-weight: 600;
-      color: #374151;
-    }
-
-    .mode-button:hover {
-      background: #f3f4f6;
-      border-color: #d1d5db;
-    }
-
-    .mode-button.active {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border-color: #667eea;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-    }
-
-    .mode-button:focus-visible {
-      outline: 3px solid rgba(102, 126, 234, 0.5);
-      outline-offset: 2px;
-    }
-
-    .mode-description {
-      font-size: 0.8rem;
-      font-weight: 400;
-      opacity: 0.9;
-    }
-
-    .playground-mode {
-      animation: fadeIn 0.3s ease-in;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
     }
 
     .compatibility-banner h2 {
@@ -359,10 +265,6 @@ const compatibilityMessage = getBrowserCompatibilityMessage(3); // Default to ti
         padding: 1rem;
       }
 
-      .mode-switcher {
-        flex-direction: column;
-      }
-
       .instructions-section {
         padding: 2rem 0;
       }
@@ -374,39 +276,6 @@ const compatibilityMessage = getBrowserCompatibilityMessage(3); // Default to ti
   </style>
 
   <script>
-    // Mode switcher functionality
-    if (typeof window !== 'undefined') {
-      document.addEventListener('DOMContentLoaded', () => {
-        const directoryButton = document.getElementById('mode-directory');
-        const zipButton = document.getElementById('mode-zip');
-        const directoryMode = document.getElementById('playground-directory');
-        const zipMode = document.getElementById('playground-zip');
-
-        const switchMode = (mode: 'directory' | 'zip') => {
-          if (mode === 'directory') {
-            directoryButton?.classList.add('active');
-            zipButton?.classList.remove('active');
-            directoryButton?.setAttribute('aria-pressed', 'true');
-            zipButton?.setAttribute('aria-pressed', 'false');
-
-            if (directoryMode) directoryMode.style.display = 'block';
-            if (zipMode) zipMode.style.display = 'none';
-          } else {
-            zipButton?.classList.add('active');
-            directoryButton?.classList.remove('active');
-            zipButton?.setAttribute('aria-pressed', 'true');
-            directoryButton?.setAttribute('aria-pressed', 'false');
-
-            if (zipMode) zipMode.style.display = 'block';
-            if (directoryMode) directoryMode.style.display = 'none';
-          }
-        };
-
-        directoryButton?.addEventListener('click', () => switchMode('directory'));
-        zipButton?.addEventListener('click', () => switchMode('zip'));
-      });
-    }
-
     // Client-side browser compatibility detection
     // This runs in the browser and updates the compatibility message
     if (typeof window !== 'undefined') {
