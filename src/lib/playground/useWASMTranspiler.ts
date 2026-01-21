@@ -60,8 +60,8 @@ export interface UseWASMTranspilerReturn extends UseWASMTranspilerState {
   /** Clear console logs */
   clearLogs: () => void;
 
-  /** Download result as files */
-  downloadResult: (result: TranspileResult, baseName: string) => void;
+  /** Download result as ZIP file */
+  downloadResult: (result: TranspileResult, baseName: string) => Promise<void>;
 }
 
 /**
@@ -206,42 +206,41 @@ export function useWASMTranspiler(): UseWASMTranspilerReturn {
     setState(prev => ({ ...prev, logs: [] }));
   }, []);
 
-  // Download result as files
-  const downloadResult = useCallback((result: TranspileResult, baseName: string) => {
-    // Download C file
-    if (result.c) {
-      const cBlob = new Blob([result.c], { type: 'text/plain' });
-      const cUrl = URL.createObjectURL(cBlob);
-      const cLink = document.createElement('a');
-      cLink.href = cUrl;
-      cLink.download = `${baseName}.c`;
-      cLink.click();
-      URL.revokeObjectURL(cUrl);
-    }
+  // Download result as ZIP file
+  const downloadResult = useCallback(async (result: TranspileResult, baseName: string) => {
+    try {
+      // Dynamically import JSZip
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
 
-    // Download H file
-    if (result.h) {
-      const hBlob = new Blob([result.h], { type: 'text/plain' });
-      const hUrl = URL.createObjectURL(hBlob);
-      const hLink = document.createElement('a');
-      hLink.href = hUrl;
-      hLink.download = `${baseName}.h`;
-      hLink.click();
-      URL.revokeObjectURL(hUrl);
-    }
+      // Add files to ZIP
+      if (result.c) {
+        zip.file(`${baseName}.c`, result.c);
+      }
+      if (result.h) {
+        zip.file(`${baseName}.h`, result.h);
+      }
+      if (result.acsl) {
+        zip.file(`${baseName}.acsl`, result.acsl);
+      }
 
-    // Download ACSL file if present
-    if (result.acsl) {
-      const acslBlob = new Blob([result.acsl], { type: 'text/plain' });
-      const acslUrl = URL.createObjectURL(acslBlob);
-      const acslLink = document.createElement('a');
-      acslLink.href = acslUrl;
-      acslLink.download = `${baseName}.acsl`;
-      acslLink.click();
-      URL.revokeObjectURL(acslUrl);
-    }
+      // Generate ZIP file
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
 
-    addLog(`Downloaded transpilation results`, 'success');
+      // Download ZIP
+      const zipUrl = URL.createObjectURL(zipBlob);
+      const zipLink = document.createElement('a');
+      zipLink.href = zipUrl;
+      zipLink.download = `${baseName}-transpiled.zip`;
+      zipLink.click();
+      URL.revokeObjectURL(zipUrl);
+
+      addLog(`Downloaded transpilation results as ZIP`, 'success');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      addLog(`Failed to create ZIP: ${errorMessage}`, 'error');
+      throw error;
+    }
   }, [addLog]);
 
   return {

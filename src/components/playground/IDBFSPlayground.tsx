@@ -60,13 +60,13 @@ export const IDBFSPlayground: React.FC = () => {
   /**
    * Handle download
    */
-  const handleDownload = useCallback(() => {
+  const handleDownload = useCallback(async () => {
     if (!transpileResult || !transpileResult.success) {
       return;
     }
 
     const baseName = selectedFile?.name.replace('.zip', '') || 'output';
-    downloadResult(transpileResult, baseName);
+    await downloadResult(transpileResult, baseName);
   }, [transpileResult, selectedFile, downloadResult]);
 
   /**
@@ -111,7 +111,7 @@ export const IDBFSPlayground: React.FC = () => {
   return (
     <div className="idbfs-playground">
       <div className="playground-header">
-        <h1>C++ to C Transpiler - ZIP Upload Mode</h1>
+        <h1>🔄 C++ to C Transpiler - ZIP Upload Mode</h1>
         <p className="playground-subtitle">
           Upload a ZIP file with your C++ project and transpile it entirely in the browser!
         </p>
@@ -119,7 +119,7 @@ export const IDBFSPlayground: React.FC = () => {
 
       {/* Section 1: Upload */}
       <section className="playground-section">
-        <h2 className="section-title">1. Upload and Transpile C++ Project</h2>
+        <h2 className="section-title">📦 Upload C++ Project</h2>
         <ZipUpload
           onFileSelected={handleFileSelected}
           disabled={isLoading || isTranspiling}
@@ -139,7 +139,7 @@ export const IDBFSPlayground: React.FC = () => {
 
       {/* Section 2: Actions */}
       <section className="playground-section">
-        <h2 className="section-title">2. Download Results</h2>
+        <h2 className="section-title">▶️ Actions</h2>
         <div className="action-buttons">
           <button
             onClick={handleDownload}
@@ -177,7 +177,7 @@ export const IDBFSPlayground: React.FC = () => {
 
       {/* Section 4: Console Output */}
       <section className="playground-section">
-        <h2 className="section-title">4. Console Output</h2>
+        <h2 className="section-title">📊 Console Output</h2>
         <ConsoleOutput
           logs={logs}
           onClear={clearLogs}
@@ -191,16 +191,33 @@ export const IDBFSPlayground: React.FC = () => {
 };
 
 const styles = `
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+
   .idbfs-playground {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .idbfs-playground > * {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
   }
 
   .loading-state,
   .error-state {
     text-align: center;
     padding: 4rem 2rem;
+    background: white;
+    border-radius: 12px;
   }
 
   .loading-spinner {
@@ -237,50 +254,55 @@ const styles = `
   }
 
   .playground-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
     text-align: center;
-    margin-bottom: 3rem;
-    padding-bottom: 2rem;
-    border-bottom: 2px solid #e5e7eb;
   }
 
   .playground-header h1 {
-    margin: 0 0 0.5rem 0;
-    font-size: 2rem;
-    color: #1f2937;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    font-size: 32px;
+    margin-bottom: 10px;
   }
 
   .playground-subtitle {
-    color: #6b7280;
-    font-size: 1.1rem;
+    opacity: 0.9;
+    font-size: 16px;
   }
 
   .playground-section {
-    margin-bottom: 2.5rem;
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 2rem;
+    padding: 30px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .playground-section:last-child {
+    border-bottom: none;
   }
 
   .section-title {
-    margin: 0 0 1.5rem 0;
-    font-size: 1.5rem;
     color: #667eea;
-    font-weight: 600;
+    margin-bottom: 20px;
+    font-size: 20px;
+  }
+
+  .success-badge,
+  .error-badge {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
   }
 
   .success-badge {
-    margin-top: 1rem;
-    padding: 0.75rem 1rem;
     background: #d1fae5;
     border: 1px solid #6ee7b7;
-    border-radius: 6px;
     color: #065f46;
-    font-weight: 500;
+  }
+
+  .error-badge {
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    color: #991b1b;
   }
 
   .action-buttons {
@@ -291,13 +313,15 @@ const styles = `
   }
 
   .btn {
-    padding: 0.75rem 1.5rem;
+    padding: 12px 24px;
     border: none;
     border-radius: 6px;
-    font-size: 1rem;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s;
+    margin-right: 10px;
+    margin-bottom: 10px;
   }
 
   .btn:disabled {
@@ -313,7 +337,6 @@ const styles = `
   .btn-primary:hover:not(:disabled) {
     background: #5568d3;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
   }
 
   .btn-success {
@@ -323,17 +346,11 @@ const styles = `
 
   .btn-success:hover:not(:disabled) {
     background: #38a169;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
   }
 
   .btn-secondary {
     background: #718096;
     color: white;
-  }
-
-  .btn-secondary:hover:not(:disabled) {
-    background: #4a5568;
   }
 
   .btn:focus-visible {
@@ -342,13 +359,9 @@ const styles = `
   }
 
   .status-indicator {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
   }
 
   .status-label {
@@ -357,10 +370,12 @@ const styles = `
   }
 
   .status-badge {
-    padding: 0.25rem 0.75rem;
+    display: inline-block;
+    padding: 6px 12px;
     border-radius: 4px;
-    font-size: 0.875rem;
+    font-size: 14px;
     font-weight: 600;
+    margin-left: 10px;
   }
 
   .status-idle {
@@ -368,22 +383,32 @@ const styles = `
     color: #6b7280;
   }
 
+  .status-loading {
+    background: #ffd93d;
+    color: #000;
+  }
+
+  .status-ready {
+    background: #51cf66;
+    color: white;
+  }
+
   .status-mounting,
   .status-extracting,
   .status-writing,
   .status-transpiling {
-    background: #fef3c7;
-    color: #92400e;
+    background: #ffd93d;
+    color: #000;
   }
 
   .status-success {
-    background: #d1fae5;
-    color: #065f46;
+    background: #51cf66;
+    color: white;
   }
 
   .status-error {
-    background: #fee2e2;
-    color: #991b1b;
+    background: #ff6b6b;
+    color: white;
   }
 
   .exit-code {
@@ -411,19 +436,19 @@ const styles = `
     }
 
     .playground-header h1 {
-      font-size: 1.5rem;
+      font-size: 24px;
     }
 
     .playground-subtitle {
-      font-size: 1rem;
+      font-size: 14px;
     }
 
     .playground-section {
-      padding: 1.5rem;
+      padding: 20px;
     }
 
     .section-title {
-      font-size: 1.25rem;
+      font-size: 18px;
     }
 
     .action-buttons {
@@ -433,6 +458,7 @@ const styles = `
 
     .btn {
       width: 100%;
+      margin-right: 0;
     }
 
     .status-indicator {
