@@ -53,8 +53,20 @@ export interface TranspileResult {
   exitCode: number;
 }
 
+export interface ACSLConfig {
+  statements?: boolean;
+  typeInvariants?: boolean;
+  axiomatics?: boolean;
+  ghostCode?: boolean;
+  behaviors?: boolean;
+  memoryPredicates?: boolean;
+}
+
 export interface TranspileOptions {
-  generateACSL?: boolean;
+  acsl?: ACSLConfig;
+  acslLevel?: 'Basic' | 'Full';
+  acslOutputMode?: 'Inline' | 'Separate';
+  generateACSL?: boolean; // Deprecated - kept for backwards compatibility
   usePragmaOnce?: boolean;
   enableExceptions?: boolean;
   enableRTTI?: boolean;
@@ -156,8 +168,44 @@ function buildCLIArgs(options: TranspileOptions): string[] {
     '--output-dir=/project/output'
   ];
 
-  if (options.generateACSL) {
-    args.push('--generate-acsl', '--acsl-level=full');
+  // ACSL configuration
+  const hasACSL = options.acsl && Object.values(options.acsl).some(v => v === true);
+  const legacyACSL = options.generateACSL === true;
+
+  if (hasACSL || legacyACSL) {
+    args.push('--generate-acsl');
+
+    // ACSL level (default: basic)
+    if (options.acslLevel) {
+      args.push(`--acsl-level=${options.acslLevel.toLowerCase()}`);
+    }
+
+    // ACSL output mode (default: inline)
+    if (options.acslOutputMode) {
+      args.push(`--acsl-output=${options.acslOutputMode.toLowerCase()}`);
+    }
+
+    // Individual ACSL features
+    if (options.acsl) {
+      if (options.acsl.statements) {
+        args.push('--acsl-statements');
+      }
+      if (options.acsl.typeInvariants) {
+        args.push('--acsl-type-invariants');
+      }
+      if (options.acsl.axiomatics) {
+        args.push('--acsl-axiomatics');
+      }
+      if (options.acsl.ghostCode) {
+        args.push('--acsl-ghost-code');
+      }
+      if (options.acsl.behaviors) {
+        args.push('--acsl-behaviors');
+      }
+      if (options.acsl.memoryPredicates) {
+        args.push('--acsl-memory-predicates');
+      }
+    }
   }
 
   if (options.usePragmaOnce !== false) {

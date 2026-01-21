@@ -233,18 +233,78 @@ export interface WASMModuleConfig {
 export type WASMModuleFactory = (config?: WASMModuleConfig) => Promise<WASMModule>;
 
 /**
+ * ACSL (ANSI/ISO C Specification Language) configuration
+ *
+ * Controls which ACSL features are generated in the transpiled code.
+ * Each feature can be toggled independently.
+ */
+export interface ACSLConfig {
+  /**
+   * Generate statement-level ACSL annotations
+   * Includes loop invariants, assertions, and statement contracts
+   */
+  statements?: boolean;
+
+  /**
+   * Generate type invariant annotations
+   * Adds invariants for struct/class types
+   */
+  typeInvariants?: boolean;
+
+  /**
+   * Generate axiomatic definitions
+   * Creates axiomatic blocks for mathematical properties
+   */
+  axiomatics?: boolean;
+
+  /**
+   * Generate ghost code for verification
+   * Adds ghost variables and ghost code blocks
+   */
+  ghostCode?: boolean;
+
+  /**
+   * Generate behavior specifications
+   * Adds named behavior contracts to functions
+   */
+  behaviors?: boolean;
+
+  /**
+   * Generate memory predicates
+   * Includes allocable, freeable, block_length predicates
+   */
+  memoryPredicates?: boolean;
+}
+
+/**
  * Transpiler options for IDBFS-based transpilation
  */
 export interface TranspilerOptions {
   /**
-   * Generate ACSL annotations
+   * ACSL configuration
+   * When any feature is enabled, ACSL generation is automatically enabled
    */
-  generateACSL?: boolean;
+  acsl?: ACSLConfig;
 
   /**
-   * ACSL annotation level (requires generateACSL: true)
+   * ACSL annotation level (requires at least one ACSL feature enabled)
+   * - Basic: Function contracts only (requires, ensures, assigns)
+   * - Full: Function contracts + loop invariants + class invariants
    */
-  acslLevel?: 'minimal' | 'full';
+  acslLevel?: 'Basic' | 'Full';
+
+  /**
+   * ACSL output mode (requires at least one ACSL feature enabled)
+   * - Inline: Annotations inline in generated C code
+   * - Separate: Annotations in separate .acsl files
+   */
+  acslOutputMode?: 'Inline' | 'Separate';
+
+  /**
+   * @deprecated Use acsl config object instead
+   * Kept for backwards compatibility
+   */
+  generateACSL?: boolean;
 
   /**
    * Use #pragma once instead of include guards
