@@ -30,7 +30,7 @@ export default defineConfig({
     plugins: [crossOriginIsolationHeaders()],
     build: {
       rollupOptions: {
-        external: ['/wasm/libclang.mjs', '/wasm/clang-headers.mjs']
+        external: ['/wasm/libclang.mjs', '/wasm/clang-headers.mjs', '@hupyy/cpptoc-wasm']
       }
     },
     // Optimize WASM handling
