@@ -22,7 +22,7 @@ import { ZipUpload } from './ZipUpload';
 import { TranspilerOptionsComponent } from './TranspilerOptions';
 import { ConsoleOutput } from './ConsoleOutput';
 import { useWASMTranspiler } from '../../lib/playground/useWASMTranspiler';
-import type { TranspilerOptions } from '../../lib/playground/idbfs-types';
+import type { TranspileResult } from '../../lib/playground/wasmTranspiler';
 
 /**
  * IDBFS Playground Component
@@ -30,93 +30,57 @@ import type { TranspilerOptions } from '../../lib/playground/idbfs-types';
 export const IDBFSPlayground: React.FC = () => {
   const {
     isLoading,
-    isMounted,
     error: wasmError,
     status,
     logs,
-    exitCode,
-    outputFiles,
-    extractZip,
-    transpile,
-    downloadOutput,
+    result,
+    transpileZip,
     clearLogs,
-    reset,
+    downloadResult,
   } = useWASMTranspiler();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isExtracted, setIsExtracted] = useState(false);
-  const [transpilerOptions, setTranspilerOptions] = useState<TranspilerOptions>({
-    generateACSL: false,
-    usePragmaOnce: true,
-    enableExceptions: true,
-    enableRTTI: true,
-    cppStandard: 'c++17',
-  });
+  const [transpileResult, setTranspileResult] = useState<TranspileResult | null>(null);
 
   /**
-   * Handle ZIP file selection
+   * Handle ZIP file selection and transpilation
    */
   const handleFileSelected = useCallback(async (file: File) => {
     setSelectedFile(file);
-    setIsExtracted(false);
+    setTranspileResult(null);
 
     try {
-      await extractZip(file);
-      setIsExtracted(true);
-    } catch (error) {
-      console.error('Failed to extract ZIP:', error);
-    }
-  }, [extractZip]);
-
-  /**
-   * Handle transpilation
-   */
-  const handleTranspile = useCallback(async () => {
-    if (!isExtracted) {
-      return;
-    }
-
-    try {
-      await transpile(transpilerOptions);
+      const result = await transpileZip(file);
+      setTranspileResult(result);
     } catch (error) {
       console.error('Transpilation failed:', error);
     }
-  }, [isExtracted, transpile, transpilerOptions]);
+  }, [transpileZip]);
 
   /**
    * Handle download
    */
-  const handleDownload = useCallback(async () => {
-    if (outputFiles.length === 0) {
+  const handleDownload = useCallback(() => {
+    if (!transpileResult || !transpileResult.success) {
       return;
     }
 
-    const originalName = selectedFile?.name.replace('.zip', '') || 'output';
-    const outputName = `${originalName}-transpiled.zip`;
-
-    try {
-      await downloadOutput(outputName);
-    } catch (error) {
-      console.error('Download failed:', error);
-    }
-  }, [outputFiles.length, selectedFile, downloadOutput]);
+    const baseName = selectedFile?.name.replace('.zip', '') || 'output';
+    downloadResult(transpileResult, baseName);
+  }, [transpileResult, selectedFile, downloadResult]);
 
   /**
    * Handle reset
    */
-  const handleReset = useCallback(async () => {
-    try {
-      await reset();
-      setSelectedFile(null);
-      setIsExtracted(false);
-    } catch (error) {
-      console.error('Reset failed:', error);
-    }
-  }, [reset]);
+  const handleReset = useCallback(() => {
+    setSelectedFile(null);
+    setTranspileResult(null);
+    clearLogs();
+  }, [clearLogs]);
 
-  const canTranspile = isMounted && isExtracted && status !== 'transpiling';
-  const canDownload = outputFiles.length > 0 && exitCode === 0;
-  const isTranspiling = status === 'transpiling';
+  const canDownload = transpileResult?.success === true;
+  const isTranspiling = status === 'transpiling' || status === 'extracting';
+  const isReady = status === 'ready';
 
   // Loading state
   if (isLoading) {
@@ -155,42 +119,28 @@ export const IDBFSPlayground: React.FC = () => {
 
       {/* Section 1: Upload */}
       <section className="playground-section">
-        <h2 className="section-title">1. Upload C++ Project</h2>
+        <h2 className="section-title">1. Upload and Transpile C++ Project</h2>
         <ZipUpload
           onFileSelected={handleFileSelected}
           disabled={isLoading || isTranspiling}
           selectedFile={selectedFile}
         />
-        {isExtracted && (
+        {transpileResult && transpileResult.success && (
           <div className="success-badge" role="status">
-            ✓ Project extracted and ready for transpilation
+            ✓ Transpilation completed successfully
+          </div>
+        )}
+        {transpileResult && !transpileResult.success && (
+          <div className="error-badge" role="status">
+            ✗ Transpilation failed - check console for details
           </div>
         )}
       </section>
 
-      {/* Section 2: Options */}
+      {/* Section 2: Actions */}
       <section className="playground-section">
-        <h2 className="section-title">2. Configure Transpiler Options</h2>
-        <TranspilerOptionsComponent
-          options={transpilerOptions}
-          onChange={setTranspilerOptions}
-          disabled={isTranspiling}
-        />
-      </section>
-
-      {/* Section 3: Actions */}
-      <section className="playground-section">
-        <h2 className="section-title">3. Actions</h2>
+        <h2 className="section-title">2. Download Results</h2>
         <div className="action-buttons">
-          <button
-            onClick={handleTranspile}
-            disabled={!canTranspile}
-            className="btn btn-primary"
-            aria-label="Start transpilation"
-          >
-            {isTranspiling ? 'Transpiling...' : 'Transpile'}
-          </button>
-
           <button
             onClick={handleDownload}
             disabled={!canDownload}
@@ -217,9 +167,10 @@ export const IDBFSPlayground: React.FC = () => {
           </div>
         </div>
 
-        {exitCode !== null && (
-          <div className={`exit-code ${exitCode === 0 ? 'success' : 'error'}`} role="status">
-            Exit Code: {exitCode} {exitCode === 0 ? '(Success)' : '(Failed)'}
+        {transpileResult && (
+          <div className={`exit-code ${transpileResult.success ? 'success' : 'error'}`} role="status">
+            Result: {transpileResult.success ? 'Success' : 'Failed'}
+            {transpileResult.diagnostics.length > 0 && ` (${transpileResult.diagnostics.length} diagnostic${transpileResult.diagnostics.length > 1 ? 's' : ''})`}
           </div>
         )}
       </section>
@@ -419,13 +370,13 @@ const styles = `
 
   .status-mounting,
   .status-extracting,
-  .status-transpiling,
-  .status-packaging {
+  .status-writing,
+  .status-transpiling {
     background: #fef3c7;
     color: #92400e;
   }
 
-  .status-complete {
+  .status-success {
     background: #d1fae5;
     color: #065f46;
   }

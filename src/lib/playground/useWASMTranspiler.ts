@@ -1,454 +1,253 @@
 /**
- * React hook for WASM transpiler with IDBFS support
+ * React hook for WASM transpiler with CLI mode
  *
- * Manages WASM module lifecycle, IDBFS mounting, transpilation execution,
- * and output packaging for browser-based C++ to C transpilation.
- *
- * Following React best practices:
- * - Uses hooks for state management and side effects
- * - Properly cleans up resources on unmount
- * - Provides stable API through useCallback
+ * Manages WASM module lifecycle, ZIP extraction, and transpilation execution
+ * using the transpiler's CLI interface via Module.callMain().
  *
  * @module useWASMTranspiler
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type {
-  WASMModule,
-  WASMModuleFactory,
-  TranspilerOptions,
-  ConsoleLogEntry,
-  TranspilationStatus,
-} from './idbfs-types';
-import { isExitStatus } from './idbfs-types';
 import {
-  mountIDBFS,
-  unmountIDBFS,
-  extractZipToIDBFS,
-  buildTranspilerArgs,
-  listOutputFiles,
-  createOutputZip,
-  detectSourceDirectory,
-  clearIDBFS,
-  OUTPUT_DIR,
-} from './idbfs';
+  transpileFromZip,
+  type WASMModule,
+  type WASMModuleFactory,
+  type TranspileResult,
+  type TranspileOptions,
+} from './wasmTranspiler';
 
-/**
- * Hook state interface
- */
+export type TranspilationStatus =
+  | 'idle'
+  | 'loading'
+  | 'ready'
+  | 'mounting'
+  | 'extracting'
+  | 'writing'
+  | 'transpiling'
+  | 'success'
+  | 'error';
+
+export interface ConsoleLogEntry {
+  message: string;
+  type: 'info' | 'error' | 'success';
+  timestamp: Date;
+}
+
 export interface UseWASMTranspilerState {
-  /**
-   * WASM module instance (null until loaded)
-   */
+  /** WASM module instance (null until loaded) */
   module: WASMModule | null;
 
-  /**
-   * Loading state
-   */
+  /** Loading state */
   isLoading: boolean;
 
-  /**
-   * Whether IDBFS is mounted
-   */
-  isMounted: boolean;
-
-  /**
-   * Error message (null if no error)
-   */
+  /** Error message (null if no error) */
   error: string | null;
 
-  /**
-   * Current transpilation status
-   */
+  /** Current transpilation status */
   status: TranspilationStatus;
 
-  /**
-   * Console log entries
-   */
+  /** Console log entries */
   logs: ConsoleLogEntry[];
 
-  /**
-   * Transpilation exit code (null if not run yet)
-   */
-  exitCode: number | null;
-
-  /**
-   * List of generated output file paths
-   */
-  outputFiles: string[];
+  /** Last transpilation result */
+  result: TranspileResult | null;
 }
 
-/**
- * Hook return type
- */
 export interface UseWASMTranspilerReturn extends UseWASMTranspilerState {
-  /**
-   * Extract ZIP file to IDBFS
-   */
-  extractZip: (file: File) => Promise<string[]>;
+  /** Transpile from ZIP file */
+  transpileZip: (file: File, options?: TranspileOptions) => Promise<TranspileResult>;
 
-  /**
-   * Run transpilation with given options
-   */
-  transpile: (options: TranspilerOptions) => Promise<number>;
-
-  /**
-   * Download output files as ZIP
-   */
-  downloadOutput: (fileName: string) => Promise<void>;
-
-  /**
-   * Clear console logs
-   */
+  /** Clear console logs */
   clearLogs: () => void;
 
-  /**
-   * Clear IDBFS and reset state
-   */
-  reset: () => Promise<void>;
-
-  /**
-   * Add custom log entry
-   */
-  addLog: (message: string, level?: ConsoleLogEntry['level']) => void;
+  /** Download result as files */
+  downloadResult: (result: TranspileResult, baseName: string) => void;
 }
 
 /**
- * Hook for WASM transpiler with IDBFS support
- *
- * Automatically loads WASM module and mounts IDBFS on component mount.
- * Cleans up resources on component unmount.
- *
- * @returns Transpiler state and operations
- *
- * @example
- * ```tsx
- * function PlaygroundComponent() {
- *   const {
- *     isLoading,
- *     isMounted,
- *     extractZip,
- *     transpile,
- *     downloadOutput,
- *     logs
- *   } = useWASMTranspiler();
- *
- *   if (isLoading) return <div>Loading WASM...</div>;
- *   if (!isMounted) return <div>Mounting filesystem...</div>;
- *
- *   return (
- *     <div>
- *       <input type="file" onChange={e => extractZip(e.target.files[0])} />
- *       <button onClick={() => transpile({ cppStandard: 'c++17' })}>
- *         Transpile
- *       </button>
- *       <Console logs={logs} />
- *     </div>
- *   );
- * }
- * ```
+ * Hook for managing WASM transpiler
  */
 export function useWASMTranspiler(): UseWASMTranspilerReturn {
   const [state, setState] = useState<UseWASMTranspilerState>({
     module: null,
     isLoading: true,
-    isMounted: false,
     error: null,
-    status: 'idle',
+    status: 'loading',
     logs: [],
-    exitCode: null,
-    outputFiles: [],
+    result: null,
   });
 
-  // Use ref to track if component is mounted (for cleanup)
-  const isMountedRef = useRef(true);
+  const moduleRef = useRef<WASMModule | null>(null);
 
-  // Stable log function using useCallback
-  const addLog = useCallback((message: string, level: ConsoleLogEntry['level'] = 'info') => {
-    const entry: ConsoleLogEntry = {
-      timestamp: new Date(),
-      level,
-      message,
-    };
-
+  // Add log entry
+  const addLog = useCallback((message: string, type: ConsoleLogEntry['type']) => {
     setState(prev => ({
       ...prev,
-      logs: [...prev.logs, entry],
+      logs: [...prev.logs, { message, type, timestamp: new Date() }],
     }));
   }, []);
 
-  // Load WASM module and mount IDBFS
+  // Initialize WASM module
   useEffect(() => {
-    let moduleInstance: WASMModule | null = null;
+    let cancelled = false;
 
     async function initializeWASM() {
       try {
+        setState(prev => ({ ...prev, status: 'loading' }));
         addLog('Loading WASM transpiler module...', 'info');
 
-        // Dynamic import of WASM module factory
-        // The WASM module is a file:../ dependency pointing to ../wasm/glue
-        // Import the full cpptoc.js which exports the factory function
-        const wasmModulePath = '../../../wasm/glue/dist/full/cpptoc.js';
+        // Use root cpptoc.js which has IDBFS support, not full/cpptoc.js
+        const wasmModulePath = '../../../wasm/glue/dist/cpptoc.js';
         const createCppToC = (await import(/* @vite-ignore */ wasmModulePath)).default as WASMModuleFactory;
 
-        // Create module with console handlers
-        moduleInstance = await createCppToC({
+        const moduleInstance = await createCppToC({
           noInitialRun: true,
           print: (text: string) => addLog(text, 'success'),
           printErr: (text: string) => addLog(text, 'error'),
           onRuntimeInitialized: function() {
             addLog('WASM runtime initialized', 'success');
+            addLog('IDBFS available: ' + (typeof this.FS?.filesystems?.IDBFS !== 'undefined'), 'info');
           },
         });
 
-        if (!isMountedRef.current) {
-          return; // Component unmounted during load
-        }
+        if (cancelled) return;
 
-        if (!moduleInstance) {
-          throw new Error('Failed to create WASM module instance');
-        }
-
-        addLog('WASM module loaded successfully', 'success');
-        addLog(`IDBFS available: ${typeof moduleInstance.FS.filesystems.IDBFS !== 'undefined'}`, 'info');
-
-        // Mount IDBFS
-        setState(prev => ({ ...prev, status: 'mounting' }));
-        addLog('Mounting IDBFS...', 'info');
-        await mountIDBFS(moduleInstance);
-
-        if (!isMountedRef.current) {
-          return; // Component unmounted during mount
-        }
-
-        addLog('IDBFS mounted successfully', 'success');
-
+        moduleRef.current = moduleInstance;
         setState(prev => ({
           ...prev,
           module: moduleInstance,
           isLoading: false,
-          isMounted: true,
-          status: 'idle',
+          status: 'ready',
         }));
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        addLog(`Failed to initialize: ${errorMessage}`, 'error');
 
-        if (isMountedRef.current) {
-          setState(prev => ({
-            ...prev,
-            isLoading: false,
-            error: errorMessage,
-            status: 'error',
-          }));
-        }
+        addLog('WASM module loaded successfully', 'success');
+
+      } catch (error) {
+        if (cancelled) return;
+
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          status: 'error',
+          error: `Failed to Load WASM Module: ${errorMessage}`,
+        }));
+        addLog(`Failed to load WASM: ${errorMessage}`, 'error');
       }
     }
 
     initializeWASM();
 
-    // Cleanup on unmount
     return () => {
-      isMountedRef.current = false;
-      if (moduleInstance) {
-        try {
-          unmountIDBFS(moduleInstance);
-        } catch (error) {
-          console.warn('Error unmounting IDBFS:', error);
-        }
-      }
+      cancelled = true;
     };
-  }, []); // Empty deps - run once on mount
+  }, [addLog]);
 
-  /**
-   * Extract ZIP file to IDBFS
-   */
-  const extractZip = useCallback(async (file: File): Promise<string[]> => {
-    if (!state.module) {
+  // Transpile from ZIP file
+  const transpileZip = useCallback(async (
+    file: File,
+    options: TranspileOptions = {}
+  ): Promise<TranspileResult> => {
+    if (!moduleRef.current) {
       throw new Error('WASM module not loaded');
     }
 
-    if (!state.isMounted) {
-      throw new Error('IDBFS not mounted');
-    }
-
     try {
-      setState(prev => ({ ...prev, status: 'extracting' }));
-      addLog(`Extracting ${file.name} (${(file.size / 1024).toFixed(2)} KB)...`, 'info');
+      setState(prev => ({ ...prev, status: 'extracting', error: null }));
+      addLog(`Extracting ZIP: ${file.name}`, 'info');
 
-      const extractedFiles = await extractZipToIDBFS(
-        file,
-        state.module,
-        (current, total, fileName) => {
-          if (current % 10 === 0 || current === total) {
-            addLog(`Extracted ${current}/${total} files...`, 'info');
-          }
+      const result = await transpileFromZip(moduleRef.current, file, (stage, progress) => {
+        if (stage === 'extracting') {
+          setState(prev => ({ ...prev, status: 'extracting' }));
+          addLog(`Extracting files... ${Math.round(progress)}%`, 'info');
+        } else if (stage === 'mounting') {
+          setState(prev => ({ ...prev, status: 'mounting' }));
+          addLog('Mounting IDBFS filesystem...', 'info');
+        } else if (stage === 'writing') {
+          setState(prev => ({ ...prev, status: 'writing' }));
+          addLog('Writing files to virtual filesystem...', 'info');
+        } else if (stage === 'transpiling') {
+          setState(prev => ({ ...prev, status: 'transpiling' }));
+          addLog('Transpiling...', 'info');
+        } else if (stage === 'complete') {
+          addLog('Processing complete', 'info');
         }
-      );
+      }, options);
 
-      addLog(`Successfully extracted ${extractedFiles.length} files`, 'success');
-      setState(prev => ({ ...prev, status: 'idle' }));
-
-      return extractedFiles;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      addLog(`Extraction failed: ${errorMessage}`, 'error');
-      setState(prev => ({ ...prev, status: 'error', error: errorMessage }));
-      throw error;
-    }
-  }, [state.module, state.isMounted, addLog]);
-
-  /**
-   * Run transpilation
-   */
-  const transpile = useCallback(async (options: TranspilerOptions): Promise<number> => {
-    if (!state.module) {
-      throw new Error('WASM module not loaded');
-    }
-
-    if (!state.isMounted) {
-      throw new Error('IDBFS not mounted');
-    }
-
-    try {
-      setState(prev => ({ ...prev, status: 'transpiling', exitCode: null, outputFiles: [] }));
-      addLog('Starting transpilation...', 'info');
-
-      // Detect source directory
-      const sourceDir = detectSourceDirectory(state.module);
-      addLog(`Source directory: ${sourceDir}`, 'info');
-
-      // Create output directory
-      try {
-        state.module.FS.mkdir(OUTPUT_DIR);
-      } catch (error: unknown) {
-        // Ignore if already exists
-        if (error instanceof Error && 'code' in error && error.code !== 'EEXIST') {
-          throw error;
+      if (result.success) {
+        setState(prev => ({ ...prev, status: 'success', result }));
+        addLog('Transpilation completed successfully', 'success');
+        addLog(`Generated ${result.c.length} bytes of C code`, 'info');
+        addLog(`Generated ${result.h.length} bytes of header code`, 'info');
+        if (result.acsl) {
+          addLog(`Generated ${result.acsl.length} bytes of ACSL code`, 'info');
         }
-      }
-
-      // Build arguments
-      const args = buildTranspilerArgs(options, sourceDir, OUTPUT_DIR);
-      addLog(`Command: cpptoc ${args.join(' ')}`, 'info');
-
-      // Run transpiler
-      let exitCode: number;
-      try {
-        exitCode = state.module.callMain(args);
-      } catch (error: unknown) {
-        if (isExitStatus(error)) {
-          exitCode = error.status;
-        } else {
-          throw error;
-        }
-      }
-
-      addLog(`Transpilation completed with exit code: ${exitCode}`, exitCode === 0 ? 'success' : 'error');
-
-      // List output files
-      const outputFiles = listOutputFiles(state.module, OUTPUT_DIR);
-      if (outputFiles.length > 0) {
-        addLog(`Generated ${outputFiles.length} output files:`, 'success');
-        outputFiles.forEach(f => {
-          const fileName = f.substring(f.lastIndexOf('/') + 1);
-          addLog(`  - ${fileName}`, 'info');
+      } else {
+        setState(prev => ({ ...prev, status: 'error', result }));
+        addLog('Transpilation failed', 'error');
+        addLog(`Exit code: ${result.exitCode}`, 'error');
+        result.diagnostics.forEach(diag => {
+          addLog(`${diag.severity}: ${diag.message} (line ${diag.line})`, 'error');
         });
       }
 
-      setState(prev => ({
-        ...prev,
-        status: exitCode === 0 ? 'complete' : 'error',
-        exitCode,
-        outputFiles,
-      }));
+      return result;
 
-      return exitCode;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      addLog(`Transpilation error: ${errorMessage}`, 'error');
-      setState(prev => ({ ...prev, status: 'error', error: errorMessage, exitCode: -1 }));
-      throw error;
-    }
-  }, [state.module, state.isMounted, addLog]);
-
-  /**
-   * Download output files as ZIP
-   */
-  const downloadOutput = useCallback(async (fileName: string): Promise<void> => {
-    if (!state.module) {
-      throw new Error('WASM module not loaded');
-    }
-
-    if (state.outputFiles.length === 0) {
-      throw new Error('No output files to download');
-    }
-
-    try {
-      setState(prev => ({ ...prev, status: 'packaging' }));
-      addLog('Creating output ZIP...', 'info');
-
-      const blob = await createOutputZip(state.outputFiles, state.module, OUTPUT_DIR);
-
-      // Trigger download
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      a.click();
-      URL.revokeObjectURL(url);
-
-      addLog('Download started', 'success');
-      setState(prev => ({ ...prev, status: 'complete' }));
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      addLog(`Download failed: ${errorMessage}`, 'error');
       setState(prev => ({ ...prev, status: 'error', error: errorMessage }));
+      addLog(`Transpilation error: ${errorMessage}`, 'error');
       throw error;
     }
-  }, [state.module, state.outputFiles, addLog]);
+  }, [addLog]);
 
-  /**
-   * Clear console logs
-   */
+  // Clear logs
   const clearLogs = useCallback(() => {
     setState(prev => ({ ...prev, logs: [] }));
   }, []);
 
-  /**
-   * Reset state and clear IDBFS
-   */
-  const reset = useCallback(async (): Promise<void> => {
-    if (!state.module) {
-      return;
+  // Download result as files
+  const downloadResult = useCallback((result: TranspileResult, baseName: string) => {
+    // Download C file
+    if (result.c) {
+      const cBlob = new Blob([result.c], { type: 'text/plain' });
+      const cUrl = URL.createObjectURL(cBlob);
+      const cLink = document.createElement('a');
+      cLink.href = cUrl;
+      cLink.download = `${baseName}.c`;
+      cLink.click();
+      URL.revokeObjectURL(cUrl);
     }
 
-    try {
-      addLog('Clearing IDBFS...', 'info');
-      await clearIDBFS(state.module);
-      addLog('IDBFS cleared', 'success');
-
-      setState(prev => ({
-        ...prev,
-        status: 'idle',
-        exitCode: null,
-        outputFiles: [],
-        error: null,
-      }));
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      addLog(`Failed to clear IDBFS: ${errorMessage}`, 'error');
-      throw error;
+    // Download H file
+    if (result.h) {
+      const hBlob = new Blob([result.h], { type: 'text/plain' });
+      const hUrl = URL.createObjectURL(hBlob);
+      const hLink = document.createElement('a');
+      hLink.href = hUrl;
+      hLink.download = `${baseName}.h`;
+      hLink.click();
+      URL.revokeObjectURL(hUrl);
     }
-  }, [state.module, addLog]);
+
+    // Download ACSL file if present
+    if (result.acsl) {
+      const acslBlob = new Blob([result.acsl], { type: 'text/plain' });
+      const acslUrl = URL.createObjectURL(acslBlob);
+      const acslLink = document.createElement('a');
+      acslLink.href = acslUrl;
+      acslLink.download = `${baseName}.acsl`;
+      acslLink.click();
+      URL.revokeObjectURL(acslUrl);
+    }
+
+    addLog(`Downloaded transpilation results`, 'success');
+  }, [addLog]);
 
   return {
     ...state,
-    extractZip,
-    transpile,
-    downloadOutput,
+    transpileZip,
     clearLogs,
-    reset,
-    addLog,
+    downloadResult,
   };
 }
