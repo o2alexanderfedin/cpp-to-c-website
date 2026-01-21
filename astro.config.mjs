@@ -40,7 +40,10 @@ export default defineConfig({
     // Support for WASM files
     assetsInclude: ['**/*.wasm'],
     worker: {
-      format: 'es'
+      format: 'es',
+      rollupOptions: {
+        external: ['@hupyy/cpptoc-wasm']
+      }
     }
   }
 });
