@@ -97,11 +97,11 @@ export function useWASMTranspiler(): UseWASMTranspilerReturn {
         addLog('Loading WASM transpiler module...', 'info');
 
         // Load WASM from appropriate source
-        // In dev: Load from local build
-        // In production: Load from GitHub release
+        // In dev: Load from local WASM build directory
+        // In production: Load from deployed public/wasm directory
         const wasmModulePath = import.meta.env.DEV
           ? '../../../wasm/glue/dist/cpptoc.js'
-          : 'https://github.com/o2alexanderfedin/cpp-to-c-transpiler/releases/download/wasm-v1.22.1/cpptoc.js';
+          : '/cpp-to-c-website/wasm/cpptoc.js';
         const createCppToC = (await import(/* @vite-ignore */ wasmModulePath)).default as WASMModuleFactory;
 
         const moduleInstance = await createCppToC({
