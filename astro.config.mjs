@@ -30,12 +30,12 @@ export default defineConfig({
     plugins: [crossOriginIsolationHeaders()],
     build: {
       rollupOptions: {
-        external: ['/wasm/libclang.mjs', '/wasm/clang-headers.mjs', '@hupyy/cpptoc-wasm']
+        external: ['/wasm/libclang.mjs', '/wasm/clang-headers.mjs']
       }
     },
     // Optimize WASM handling
     optimizeDeps: {
-      exclude: ['@hupyy/cpptoc-wasm']
+      exclude: []
     },
     // Support for WASM files
     assetsInclude: ['**/*.wasm'],
@@ -48,7 +48,7 @@ export default defineConfig({
     worker: {
       format: 'es',
       rollupOptions: {
-        external: ['@hupyy/cpptoc-wasm']
+        external: []
       }
     }
   }
