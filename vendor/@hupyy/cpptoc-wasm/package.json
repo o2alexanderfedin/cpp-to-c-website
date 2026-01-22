@@ -1,0 +1,73 @@
+{
+  "name": "@hupyy/cpptoc-wasm",
+  "version": "1.22.1",
+  "description": "C++ to C transpiler with ACSL formal specification annotations, compiled to WebAssembly",
+  "type": "module",
+  "author": "Alexander Fedin",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/o2alexanderfedin/hupyy-cpp-to-c.git"
+  },
+  "homepage": "https://o2alexanderfedin.github.io/cpp-to-c-website",
+  "bugs": {
+    "url": "https://github.com/o2alexanderfedin/hupyy-cpp-to-c/issues"
+  },
+  "keywords": [
+    "cpp",
+    "c",
+    "transpiler",
+    "acsl",
+    "formal-verification",
+    "webassembly",
+    "wasm",
+    "clang",
+    "llvm"
+  ],
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js",
+      "default": "./index.js"
+    },
+    "./minimal": {
+      "types": "./minimal/index.d.ts",
+      "import": "./minimal/cpptoc.js",
+      "default": "./minimal/cpptoc.js"
+    },
+    "./full": {
+      "types": "./full/index.d.ts",
+      "import": "./full/cpptoc.js",
+      "default": "./full/cpptoc.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "**/*.js",
+    "**/*.wasm",
+    "**/*.d.ts",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "npm run build:wasm && npm run build:types",
+    "build:wasm": "cd .. && ./scripts/build-minimal.sh && ./scripts/build-full.sh",
+    "build:types": "tsc --project tsconfig.build.json",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:size": "cd .. && ./scripts/size-check.sh",
+    "prepublishOnly": "npm run build && npm run test && npm run test:size"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0",
+    "@types/node": "^22.0.0"
+  }
+}

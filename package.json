@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@astrojs/react": "^4.4.2",
-    "@hupyy/cpptoc-wasm": "file:../wasm/glue",
+    "@hupyy/cpptoc-wasm": "file:./vendor/@hupyy/cpptoc-wasm",
     "@types/jszip": "^3.4.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
