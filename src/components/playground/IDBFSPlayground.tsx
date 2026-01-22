@@ -48,6 +48,14 @@ export const IDBFSPlayground: React.FC = () => {
     cppStandard: 'c++17',
     acslLevel: 'Basic',
     acslOutputMode: 'Inline',
+    acsl: {
+      statements: true,
+      typeInvariants: true,
+      axiomatics: true,
+      ghostCode: true,
+      behaviors: true,
+      memoryPredicates: true,
+    },
   });
 
   /**
