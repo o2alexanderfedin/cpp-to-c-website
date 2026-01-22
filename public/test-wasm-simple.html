@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WASM Transpiler Integration Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .status.loading {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        .status.success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        .status.error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .editor {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 10px;
+            resize: vertical;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px 10px 0;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid #dee2e6;
+            max-height: 400px;
+        }
+        .log {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #666;
+        }
+        h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 WASM Transpiler Integration Test</h1>
+    <p>Testing the @hupyy/cpptoc-wasm module integration</p>
+
+    <div id="status" class="status loading">⏳ Click "Load Module" to start...</div>
+
+    <button id="loadBtn" onclick="loadModule()">Load WASM Module</button>
+    <button id="transpileBtn" onclick="transpile()" disabled>Transpile C++ to C</button>
+
+    <div class="container">
+        <div class="editor">
+            <h3>C++ Input</h3>
+            <textarea id="cppInput">class Point {
+public:
+    int x, y;
+
+    Point(int x, int y) : x(x), y(y) {}
+
+    int getX() const { return x; }
+    void setX(int newX) { x = newX; }
+};
+
+int add(int a, int b) {
+    return a + b;
+}</textarea>
+        </div>
+
+        <div class="editor">
+            <h3>C Output (.c file)</h3>
+            <textarea id="cOutput" readonly></textarea>
+        </div>
+    </div>
+
+    <div class="editor" style="margin-top: 20px;">
+        <h3>📋 Execution Log</h3>
+        <pre id="log" class="log"></pre>
+    </div>
+
+    <script type="module">
+        let wasmModule = null;
+        let transpilerInstance = null;
+
+        function log(message) {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logEl.textContent += `[${timestamp}] ${message}\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+
+        function setStatus(message, type = 'loading') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        window.loadModule = async function() {
+            try {
+                setStatus('⏳ Loading @hupyy/cpptoc-wasm module...', 'loading');
+                log('Starting module load...');
+
+                document.getElementById('loadBtn').disabled = true;
+
+                // Import the WASM module
+                const module = await import('/@hupyy/cpptoc-wasm');
+                log('✅ Module imported');
+
+                const createModule = module.default;
+                log('Creating WASM module instance...');
+
+                wasmModule = await createModule({
+                    locateFile: (path, prefix) => {
+                        const fullPath = prefix + path;
+                        log(`Locating file: ${path} -> ${fullPath}`);
+                        return fullPath;
+                    },
+                    onRuntimeInitialized: () => {
+                        log('✅ WASM runtime initialized');
+                    }
+                });
+
+                log('✅ WASM module created');
+
+                // Create transpiler instance
+                transpilerInstance = new wasmModule.Transpiler();
+                const version = transpilerInstance.getVersion();
+                log(`✅ Transpiler instance created (version: ${version})`);
+
+                setStatus('✅ WASM module loaded successfully!', 'success');
+                document.getElementById('transpileBtn').disabled = false;
+
+            } catch (error) {
+                log(`❌ Error loading module: ${error.message}`);
+                log(error.stack);
+                setStatus(`❌ Error: ${error.message}`, 'error');
+                document.getElementById('loadBtn').disabled = false;
+            }
+        };
+
+        window.transpile = async function() {
+            try {
+                setStatus('🔄 Transpiling...', 'loading');
+                log('Starting transpilation...');
+
+                const cppCode = document.getElementById('cppInput').value;
+                log(`Input: ${cppCode.length} characters`);
+
+                const result = transpilerInstance.transpileCode(cppCode, 'test.cpp');
+                log('Transpilation complete');
+
+                if (result.success) {
+                    document.getElementById('cOutput').value = result.c;
+
+                    log(`✅ Generated ${result.c.length} bytes of C code`);
+                    if (result.h) {
+                        log(`✅ Generated ${result.h.length} bytes of header`);
+                    }
+                    if (result.diagnostics && result.diagnostics.length > 0) {
+                        log(`⚠️  ${result.diagnostics.length} diagnostics`);
+                    }
+
+                    setStatus('✅ Transpilation successful!', 'success');
+                } else {
+                    const errors = result.diagnostics.map(d => d.message || d).join('\n');
+                    document.getElementById('cOutput').value = `Error:\n${errors}`;
+
+                    log(`❌ Transpilation failed: ${result.diagnostics.length} errors`);
+                    setStatus('❌ Transpilation failed', 'error');
+                }
+
+            } catch (error) {
+                log(`❌ Error during transpilation: ${error.message}`);
+                log(error.stack);
+                setStatus(`❌ Error: ${error.message}`, 'error');
+                document.getElementById('cOutput').value = `Error: ${error.message}`;
+            }
+        };
+
+        // Check environment
+        log('Page loaded');
+        log(`Cross-origin isolated: ${crossOriginIsolated}`);
+        log(`SharedArrayBuffer: ${typeof SharedArrayBuffer !== 'undefined' ? 'available' : 'not available'}`);
+        setStatus('✅ Ready! Click "Load Module" to start.', 'success');
+    </script>
+</body>
+</html>
