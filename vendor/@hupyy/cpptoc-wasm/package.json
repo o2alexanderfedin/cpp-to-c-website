@@ -24,30 +24,30 @@
     "clang",
     "llvm"
   ],
-  "main": "./index.js",
-  "types": "./index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./index.d.ts",
-      "import": "./index.js",
-      "default": "./index.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./minimal": {
-      "types": "./minimal/index.d.ts",
-      "import": "./minimal/cpptoc.js",
-      "default": "./minimal/cpptoc.js"
+      "types": "./dist/minimal/index.d.ts",
+      "import": "./dist/minimal/cpptoc.js",
+      "default": "./dist/minimal/cpptoc.js"
     },
     "./full": {
-      "types": "./full/index.d.ts",
-      "import": "./full/cpptoc.js",
-      "default": "./full/cpptoc.js"
+      "types": "./dist/full/index.d.ts",
+      "import": "./dist/full/cpptoc.js",
+      "default": "./dist/full/cpptoc.js"
     },
     "./package.json": "./package.json"
   },
   "files": [
-    "**/*.js",
-    "**/*.wasm",
-    "**/*.d.ts",
+    "dist/**/*.js",
+    "dist/**/*.wasm",
+    "dist/**/*.d.ts",
     "README.md",
     "LICENSE",
     "CHANGELOG.md"

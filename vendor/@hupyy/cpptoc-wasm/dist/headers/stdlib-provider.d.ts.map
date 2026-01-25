@@ -1,0 +1,1 @@
+{"version":3,"file":"stdlib-provider.d.ts","sourceRoot":"","sources":["../../src/headers/stdlib-provider.ts"],"names":[],"mappings":"AAKA,OAAO,EAAE,cAAc,EAAE,MAAM,aAAa,CAAC;AAmQ7C,qBAAa,wBAAyB,YAAW,cAAc;IAC3D,OAAO,CAAC,OAAO,CAQZ;IAEH,SAAS,CAAC,IAAI,EAAE,MAAM,GAAG,MAAM,GAAG,IAAI;IAItC,SAAS,CAAC,IAAI,EAAE,MAAM,GAAG,OAAO;IAIhC,WAAW,IAAI,MAAM,EAAE;CAG1B"}
