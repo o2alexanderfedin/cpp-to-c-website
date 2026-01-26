@@ -13,7 +13,7 @@ import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 
-// Import Native CLI transpiler (temporary: use native CLI until WASM transpiler is built)
+// Import Native CLI transpiler (used for faster test execution instead of WASM)
 import { NativeCLITranspiler } from '../helpers/NativeCLITranspiler';
 import type { TranspileOptions } from '@hupyy/cpptoc-wasm';
 import { DEFAULT_TRANSPILE_OPTIONS } from '@hupyy/cpptoc-wasm';
@@ -125,12 +125,12 @@ describe('Backend API + Frontend Integration Tests', () => {
   let transpiler: NativeCLITranspiler;
 
   beforeAll(async () => {
-    // Initialize native CLI transpiler (temporary: use native CLI until WASM transpiler is built)
+    // Initialize native CLI transpiler (faster test execution than loading WASM)
     try {
       transpiler = new NativeCLITranspiler();
       console.log('Native CLI transpiler initialized successfully');
       console.log('Transpiler version:', transpiler.getVersion());
-      console.log('Note: Using native CLI instead of WASM (WASM build uses stub implementation)');
+      console.log('Note: Using native CLI for test speed (full WASM build available for browser)');
     } catch (error) {
       console.error('Failed to initialize native CLI transpiler:', error);
       throw error;

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WASM Minimal Test</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #00ff00; }
+    #log { white-space: pre-wrap; }
+    .error { color: #ff6b6b; }
+    .success { color: #51cf66; }
+    .info { color: #74c0fc; }
+  </style>
+</head>
+<body>
+  <h1>WASM Module Test</h1>
+  <div id="log"></div>
+
+  <script type="module">
+    const logEl = document.getElementById('log');
+
+    function log(msg, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      const span = document.createElement('div');
+      span.className = type;
+      span.textContent = `[${timestamp}] ${msg}`;
+      logEl.appendChild(span);
+      console.log(`[${timestamp}] ${msg}`);
+    }
+
+    // Step 1: Load the module factory
+    log('Step 1: Importing WASM module factory...', 'info');
+    let createCppToC;
+    try {
+      const module = await import('/cpp-to-c-website/wasm/cpptoc.js');
+      createCppToC = module.default;
+      log('✓ Module factory imported successfully', 'success');
+      log(`  Factory type: ${typeof createCppToC}`, 'info');
+    } catch (e) {
+      log(`✗ Failed to import: ${e.message}`, 'error');
+      log(`  Stack: ${e.stack}`, 'error');
+      throw e;
+    }
+
+    // Step 2: Create module instance with minimal config
+    log('Step 2: Creating WASM module instance...', 'info');
+    let moduleInstance = null;
+    let runtimeInitialized = false;
+
+    try {
+      const promiseResult = await createCppToC({
+        noInitialRun: true,
+        print: (text) => log(`[WASM stdout] ${text}`, 'success'),
+        printErr: (text) => log(`[WASM stderr] ${text}`, 'error'),
+        locateFile: (path) => {
+          if (path.endsWith('.wasm')) {
+            const url = `/cpp-to-c-website/wasm/${path}`;
+            log(`  Locating ${path} -> ${url}`, 'info');
+            return url;
+          }
+          return path;
+        },
+        onRuntimeInitialized: function() {
+          log('✓ onRuntimeInitialized callback fired', 'success');
+          log(`  'this' type: ${typeof this}`, 'info');
+          log(`  'this' has FS: ${typeof this.FS !== 'undefined'}`, 'info');
+          log(`  'this.FS' type: ${typeof this.FS}`, 'info');
+
+          // Capture 'this' as the real module instance
+          moduleInstance = this;
+          runtimeInitialized = true;
+
+          log(`  Captured moduleInstance: ${typeof moduleInstance}`, 'info');
+        }
+      });
+
+      log('✓ createCppToC() promise resolved', 'success');
+      log(`  Promise result type: ${typeof promiseResult}`, 'info');
+      log(`  Promise result has FS: ${typeof promiseResult?.FS !== 'undefined'}`, 'info');
+
+    } catch (e) {
+      log(`✗ Failed to create module: ${e.message}`, 'error');
+      log(`  Stack: ${e.stack}`, 'error');
+      throw e;
+    }
+
+    // Step 3: Wait for onRuntimeInitialized
+    log('Step 3: Waiting for onRuntimeInitialized...', 'info');
+    const maxWait = 10000;
+    const pollInterval = 100;
+    let waited = 0;
+
+    while (!runtimeInitialized && waited < maxWait) {
+      await new Promise(resolve => setTimeout(resolve, pollInterval));
+      waited += pollInterval;
+    }
+
+    if (!runtimeInitialized) {
+      log(`✗ onRuntimeInitialized never fired after ${waited}ms`, 'error');
+      throw new Error('Runtime initialization timeout');
+    }
+
+    log(`✓ Runtime initialized after ${waited}ms`, 'success');
+
+    // Step 4: Verify module instance
+    log('Step 4: Verifying module instance...', 'info');
+    log(`  moduleInstance type: ${typeof moduleInstance}`, 'info');
+    log(`  moduleInstance is null: ${moduleInstance === null}`, 'info');
+
+    if (moduleInstance) {
+      log(`  moduleInstance has FS: ${typeof moduleInstance.FS !== 'undefined'}`, 'info');
+      log(`  moduleInstance.FS type: ${typeof moduleInstance.FS}`, 'info');
+
+      if (moduleInstance.FS) {
+        log(`  FS.mkdir type: ${typeof moduleInstance.FS.mkdir}`, 'info');
+        log(`  FS.readdir type: ${typeof moduleInstance.FS.readdir}`, 'info');
+        log(`  FS.writeFile type: ${typeof moduleInstance.FS.writeFile}`, 'info');
+        log(`  FS.filesystems type: ${typeof moduleInstance.FS.filesystems}`, 'info');
+
+        if (moduleInstance.FS.filesystems) {
+          log(`  FS.filesystems.IDBFS type: ${typeof moduleInstance.FS.filesystems.IDBFS}`, 'info');
+        }
+      }
+
+      if (moduleInstance.callMain) {
+        log(`  callMain type: ${typeof moduleInstance.callMain}`, 'info');
+      }
+    }
+
+    // Step 5: Try to use FS
+    if (moduleInstance?.FS && typeof moduleInstance.FS.mkdir === 'function') {
+      log('Step 5: Testing FS operations...', 'info');
+
+      try {
+        // Test 1: Create directory
+        log('  Test 1: Creating /test directory...', 'info');
+        moduleInstance.FS.mkdir('/test');
+        log('  ✓ Directory created successfully', 'success');
+
+        // Test 2: List directory
+        log('  Test 2: Listing root directory...', 'info');
+        const files = moduleInstance.FS.readdir('/');
+        log(`  ✓ Root contains: ${files.join(', ')}`, 'success');
+
+        // Test 3: Try to create non-existent directory (should fail)
+        log('  Test 3: Creating /nonexistent/nested (should fail)...', 'info');
+        try {
+          moduleInstance.FS.mkdir('/nonexistent/nested');
+          log('  ✗ Should have failed but did not', 'error');
+        } catch (e) {
+          log(`  ✓ Failed as expected: ${e.message}`, 'success');
+        }
+
+        // Test 4: Write and read file
+        log('  Test 4: Writing test file...', 'info');
+        moduleInstance.FS.writeFile('/test/hello.txt', 'Hello WASM!');
+        const content = moduleInstance.FS.readFile('/test/hello.txt', { encoding: 'utf8' });
+        log(`  ✓ File content: ${content}`, 'success');
+
+        log('✓ ALL FS TESTS PASSED', 'success');
+
+      } catch (e) {
+        log(`✗ FS test failed: ${e.message}`, 'error');
+        log(`  Stack: ${e.stack}`, 'error');
+      }
+    } else {
+      log('✗ FS not available or mkdir not a function', 'error');
+    }
+
+    log('=== TEST COMPLETE ===', 'info');
+  </script>
+</body>
+</html>

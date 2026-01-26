@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WASM Transpiler E2E Test</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #00ff00;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    #log { white-space: pre-wrap; margin-top: 20px; }
+    .error { color: #ff6b6b; }
+    .success { color: #51cf66; }
+    .info { color: #74c0fc; }
+    .warning { color: #ffd43b; }
+    button {
+      background: #339af0;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 10px 5px;
+      cursor: pointer;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #228be6;
+    }
+    button:disabled {
+      background: #495057;
+      cursor: not-allowed;
+    }
+    #fileInput {
+      margin: 10px 0;
+    }
+    .output-section {
+      margin-top: 20px;
+      padding: 15px;
+      background: #2d2d2d;
+      border-left: 3px solid #51cf66;
+    }
+    .output-section h3 {
+      margin-top: 0;
+      color: #51cf66;
+    }
+    .code-block {
+      background: #1a1a1a;
+      padding: 10px;
+      overflow-x: auto;
+      border: 1px solid #444;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 WASM Transpiler E2E Test</h1>
+
+  <div>
+    <h2>Step 1: Initialize WASM Module</h2>
+    <button id="initBtn" onclick="initModule()">Initialize WASM</button>
+    <span id="initStatus"></span>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <h2>Step 2: Upload C++ ZIP File</h2>
+    <input type="file" id="fileInput" accept=".zip" disabled />
+    <button id="transpileBtn" onclick="transpile()" disabled>Transpile</button>
+    <span id="transpileStatus"></span>
+  </div>
+
+  <div id="output"></div>
+  <div id="log"></div>
+
+  <script type="module">
+    const logEl = document.getElementById('log');
+    const outputEl = document.getElementById('output');
+    let moduleInstance = null;
+
+    window.log = function(msg, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      const span = document.createElement('div');
+      span.className = type;
+      span.textContent = `[${timestamp}] ${msg}`;
+      logEl.appendChild(span);
+      console.log(`[${timestamp}] ${msg}`);
+    };
+
+    window.initModule = async function() {
+      const initBtn = document.getElementById('initBtn');
+      const initStatus = document.getElementById('initStatus');
+
+      try {
+        initBtn.disabled = true;
+        initStatus.textContent = '⏳ Loading...';
+        log('Importing WASM module factory...', 'info');
+
+        const { default: createCppToC } = await import('/cpp-to-c-website/wasm/cpptoc.js');
+        log('✓ Module factory imported', 'success');
+
+        let runtimeReady = false;
+        const moduleConfig = {
+          noInitialRun: true,
+          print: (text) => log(`[stdout] ${text}`, 'info'),
+          printErr: (text) => log(`[stderr] ${text}`, 'warning'),
+          locateFile: (path) => {
+            if (path.endsWith('.wasm')) {
+              return `/cpp-to-c-website/wasm/${path}`;
+            }
+            return path;
+          },
+          onRuntimeInitialized: function() {
+            moduleInstance = this;
+            runtimeReady = true;
+            log('✓ Runtime initialized', 'success');
+            log(`  FS available: ${typeof this.FS !== 'undefined'}`, 'info');
+            log(`  callMain available: ${typeof this.callMain === 'function'}`, 'info');
+          }
+        };
+
+        await createCppToC(moduleConfig);
+
+        // Wait for runtime
+        let waited = 0;
+        while (!runtimeReady && waited < 10000) {
+          await new Promise(r => setTimeout(r, 50));
+          waited += 50;
+        }
+
+        if (!moduleInstance || !moduleInstance.FS) {
+          throw new Error('FS not available after initialization');
+        }
+
+        log('✓ WASM module ready', 'success');
+        initStatus.textContent = '✅ Ready';
+        initStatus.className = 'success';
+
+        document.getElementById('fileInput').disabled = false;
+        document.getElementById('transpileBtn').disabled = false;
+
+      } catch (error) {
+        log(`✗ Initialization failed: ${error.message}`, 'error');
+        log(`  Stack: ${error.stack}`, 'error');
+        initStatus.textContent = '❌ Failed';
+        initStatus.className = 'error';
+        initBtn.disabled = false;
+      }
+    };
+
+    window.transpile = async function() {
+      const fileInput = document.getElementById('fileInput');
+      const transpileBtn = document.getElementById('transpileBtn');
+      const transpileStatus = document.getElementById('transpileStatus');
+
+      if (!fileInput.files.length) {
+        log('✗ No file selected', 'error');
+        return;
+      }
+
+      try {
+        transpileBtn.disabled = true;
+        transpileStatus.textContent = '⏳ Processing...';
+        outputEl.innerHTML = '';
+
+        const file = fileInput.files[0];
+        log(`Processing ZIP: ${file.name} (${file.size} bytes)`, 'info');
+
+        // Extract ZIP
+        log('Extracting ZIP file...', 'info');
+        const JSZip = (await import('https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm')).default;
+        const zip = await JSZip.loadAsync(file);
+
+        const files = [];
+        zip.forEach((path, file) => {
+          if (!file.dir) {
+            files.push({ path, file });
+          }
+        });
+        log(`✓ Found ${files.length} files in ZIP`, 'success');
+
+        // Create project directory in virtual FS
+        log('Setting up virtual filesystem...', 'info');
+        const FS = moduleInstance.FS;
+
+        try { FS.mkdir('/project'); } catch (e) {}
+        try { FS.mkdir('/output'); } catch (e) {}
+
+        // Write files to virtual FS
+        for (const { path, file } of files) {
+          const content = await file.async('string');
+          const filePath = `/project/${path}`;
+
+          // Create parent directories
+          const parts = path.split('/');
+          let current = '/project';
+          for (let i = 0; i < parts.length - 1; i++) {
+            current += '/' + parts[i];
+            try { FS.mkdir(current); } catch (e) {}
+          }
+
+          FS.writeFile(filePath, content);
+          log(`  Written: ${filePath} (${content.length} bytes)`, 'info');
+        }
+
+        log('✓ Files written to virtual filesystem', 'success');
+
+        // Run transpiler
+        log('Running transpiler...', 'info');
+        log('Command: cpptoc --source-dir /project --output-dir /output', 'info');
+
+        const exitCode = moduleInstance.callMain([
+          '--source-dir', '/project',
+          '--output-dir', '/output'
+        ]);
+
+        log(`✓ Transpiler exited with code: ${exitCode}`, exitCode === 0 ? 'success' : 'error');
+
+        // Read output files
+        log('Reading output files...', 'info');
+        const outputFiles = FS.readdir('/output').filter(f => f !== '.' && f !== '..');
+
+        if (outputFiles.length === 0) {
+          log('⚠ No output files generated', 'warning');
+          transpileStatus.textContent = '⚠️ No output';
+          transpileStatus.className = 'warning';
+        } else {
+          log(`✓ Generated ${outputFiles.length} output files`, 'success');
+
+          let outputHTML = '<div class="output-section"><h3>📄 Generated Files</h3>';
+
+          for (const filename of outputFiles) {
+            const content = FS.readFile(`/output/${filename}`, { encoding: 'utf8' });
+            log(`  ${filename}: ${content.length} bytes`, 'success');
+
+            outputHTML += `
+              <h4>${filename}</h4>
+              <div class="code-block">${escapeHtml(content)}</div>
+            `;
+          }
+
+          outputHTML += '</div>';
+          outputEl.innerHTML = outputHTML;
+
+          transpileStatus.textContent = `✅ Success (${outputFiles.length} files)`;
+          transpileStatus.className = 'success';
+        }
+
+        log('=== TRANSPILATION COMPLETE ===', 'success');
+
+      } catch (error) {
+        log(`✗ Transpilation failed: ${error.message}`, 'error');
+        log(`  Stack: ${error.stack}`, 'error');
+        transpileStatus.textContent = '❌ Failed';
+        transpileStatus.className = 'error';
+      } finally {
+        transpileBtn.disabled = false;
+      }
+    };
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Auto-initialize on load
+    log('Page loaded. Click "Initialize WASM" to start.', 'info');
+  </script>
+</body>
+</html>
