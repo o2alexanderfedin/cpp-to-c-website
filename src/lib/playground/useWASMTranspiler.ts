@@ -102,15 +102,45 @@ export function useWASMTranspiler(): UseWASMTranspilerReturn {
         // In production: Will be bundled or loaded from public/wasm
         const { default: createCppToC } = await import('@hupyy/cpptoc-wasm');
 
-        const moduleInstance = await createCppToC({
+        // CRITICAL: The module instance with FS is 'this' in onRuntimeInitialized, NOT the return value
+        // Declare variable first to avoid temporal dead zone
+        let moduleInstance: WASMModule | null = null;
+
+        const promiseResult = await createCppToC({
           noInitialRun: true,
           print: (text: string) => addLog(text, 'success'),
           printErr: (text: string) => addLog(text, 'error'),
+          locateFile: (path: string) => {
+            // WASM files are in /wasm/ directory (base path is handled by Astro)
+            if (path.endsWith('.wasm')) {
+              return `/cpp-to-c-website/wasm/${path}`;
+            }
+            return path;
+          },
           onRuntimeInitialized: function() {
+            // 'this' is the REAL module instance with FS - capture it
+            moduleInstance = this as unknown as WASMModule;
             addLog('WASM runtime initialized', 'success');
+            addLog('FS available: ' + (typeof this.FS !== 'undefined'), 'info');
             addLog('IDBFS available: ' + (typeof this.FS?.filesystems?.IDBFS !== 'undefined'), 'info');
           },
         });
+
+        // Poll until moduleInstance is set and has FS
+        const maxWaitMs = 10000;
+        const pollIntervalMs = 50;
+        let waited = 0;
+
+        while ((!moduleInstance || !moduleInstance.FS || typeof moduleInstance.FS.mkdir !== 'function') && waited < maxWaitMs) {
+          await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+          waited += pollIntervalMs;
+        }
+
+        if (!moduleInstance || !moduleInstance.FS || typeof moduleInstance.FS.mkdir !== 'function') {
+          throw new Error(`WASM FS not available after ${waited}ms`);
+        }
+
+        addLog('WASM module ready with FS', 'success');
 
         if (cancelled) return;
 
