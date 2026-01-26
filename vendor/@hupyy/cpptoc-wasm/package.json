@@ -32,16 +32,6 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./minimal": {
-      "types": "./dist/minimal/index.d.ts",
-      "import": "./dist/minimal/cpptoc.js",
-      "default": "./dist/minimal/cpptoc.js"
-    },
-    "./full": {
-      "types": "./dist/full/index.d.ts",
-      "import": "./dist/full/cpptoc.js",
-      "default": "./dist/full/cpptoc.js"
-    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -57,13 +47,11 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "npm run build:wasm && npm run build:types",
-    "build:wasm": "cd .. && ./scripts/build-minimal.sh && ./scripts/build-full.sh",
+    "build": "echo 'WASM files copied by root build-wasm.sh script'",
     "build:types": "tsc --project tsconfig.build.json",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "test:size": "cd .. && ./scripts/size-check.sh",
-    "prepublishOnly": "npm run build && npm run test && npm run test:size"
+    "prepublishOnly": "npm run build && npm run test"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

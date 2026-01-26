@@ -1,7 +1,7 @@
 // This code implements the `-sMODULARIZE` settings by taking the generated
 // JS program code (INNER_JS_CODE) and wrapping it in a factory function.
 
-// When targeting node and ES6 we use `await import ..` in the generated code
+// When targetting node and ES6 we use `await import ..` in the generated code
 // so the outer function needs to be marked as async.
 async function createCppToCModule(moduleArg = {}) {
   var moduleRtn;
@@ -198,7 +198,7 @@ if (!globalThis.WebAssembly) {
 var ABORT = false;
 
 // set by exit() and abort().  Passed to 'onExit' handler.
-// NOTE: This is also used as the process return code in shell environments
+// NOTE: This is also used as the process return code code in shell environments
 // but only when noExitRuntime is false.
 var EXITSTATUS;
 
@@ -520,7 +520,7 @@ function getBinarySync(file) {
   if (readBinary) {
     return readBinary(file);
   }
-  // Throwing a plain string here, even though it not normally advisable since
+  // Throwing a plain string here, even though it not normally adviables since
   // this gets turning into an `abort` in instantiateArrayBuffer.
   throw 'both async and sync fetching of the wasm failed';
 }
@@ -1278,7 +1278,7 @@ async function createWasm() {
       },
   createNode(parent, name, mode, dev) {
         if (FS.isBlkdev(mode) || FS.isFIFO(mode)) {
-          // not supported
+          // no supported
           throw new FS.ErrnoError(63);
         }
         MEMFS.ops_table ||= {
@@ -1498,7 +1498,7 @@ async function createWasm() {
           // If the buffer is located in main memory (HEAP), and if
           // memory can grow, we can't hold on to references of the
           // memory buffer, as they may get invalidated. That means we
-          // need to copy its contents.
+          // need to do copy its contents.
           if (buffer.buffer === HEAP8.buffer) {
             canOwn = false;
           }
@@ -2356,12 +2356,12 @@ async function createWasm() {
         },
   read(stream, buffer, offset, length, position) {
           return NODEFS.tryFSOperation(() =>
-            fs.readSync(stream.nfd, buffer, offset, length, position)
+            fs.readSync(stream.nfd, new Int8Array(buffer.buffer, offset, length), 0, length, position)
           );
         },
   write(stream, buffer, offset, length, position) {
           return NODEFS.tryFSOperation(() =>
-            fs.writeSync(stream.nfd, buffer, offset, length, position)
+            fs.writeSync(stream.nfd, new Int8Array(buffer.buffer, offset, length), 0, length, position)
           );
         },
   llseek(stream, offset, whence) {
@@ -2497,7 +2497,7 @@ async function createWasm() {
           return plugin['handle'](byteArray, fullname);
         }
       }
-      // If no plugin handled this file then return the original/unmodified
+      // In no plugin handled this file then return the original/unmodified
       // byteArray.
       return byteArray;
     };
@@ -3487,7 +3487,7 @@ async function createWasm() {
           } else {
             // node doesn't exist, try to create it
             // Ignore the permission bits here to ensure we can `open` this new
-            // file below. We use chmod below to apply the permissions once the
+            // file below. We use chmod below the apply the permissions once the
             // file is open.
             node = FS.mknod(path, mode | 0o777, 0);
             created = true;
@@ -4187,6 +4187,7 @@ async function createWasm() {
   };
   
   var SYSCALLS = {
+  DEFAULT_POLLMASK:5,
   calculateAt(dirfd, path, allowEmpty) {
         if (PATH.isAbs(path)) {
           return path;
@@ -6237,7 +6238,7 @@ run();
 // and return either the Module itself, or a promise of the module.
 //
 // We assign to the `moduleRtn` global here and configure closure to see
-// this as an extern so it won't get minified.
+// this as and extern so it won't get minified.
 
 if (runtimeInitialized)  {
   moduleRtn = Module;
